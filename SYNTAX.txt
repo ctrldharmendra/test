@@ -1,0 +1,192 @@
+  const user = useSelector((state) => state.userState.selectedUser);  //selectedUser object
+
+  const [updateProfile] = await db.execute(
+    `UPDATE users
+      SET is_profile_view_notify = NOT COALESCE(is_profile_view_notify, 0)
+      WHERE id = ?`,
+    [0, loggedInUserId]
+)
+
+
+
+
+---------------
+
+// import { Server } from "socket.io";
+
+// export default function handler(req, res) {
+//   // agar socket server pehle se ban chuka hai, dobara mat banao
+//   if (res.socket.server.io) {
+//     console.log("Socket already running");
+//     res.end();
+//     return;
+//   }
+
+//   console.log("Starting socket server...");
+
+//   // yaha 'io' hamara MAIN server object hai (poora group)
+//   const io = new Server(res.socket.server, {
+//     path: "/api/socket_io", // koi bhi custom path, frontend mein same use hoga
+//   });
+
+//   // jab bhi koi NAYA user connect hota hai, ye chalega
+//   io.on("connection", (socket) => {
+//     console.log("1 Connected:", socket.id);
+
+//       // FRONTEND se userId lekar us user ko uske apne room mein daalo
+//   socket.on("register", (userId) => {
+//     socket.join(`user:${userId}`);   // is user ka personal room
+//     console.log(`User ${userId} joined the room`);
+//   });
+//     // yaha hum is USER ke liye events LISTEN karenge (aage example dekhenge)
+
+// // --------------
+//     //jab frontend se say-hello event vhejega ye chalega
+// //     socket.on("say-hello", (data)=>{
+// // console.log("frontend ne vheja data", data)
+// // // aab isi user ko wapas reply vheejo 
+// // socket.emit("say-hello-reply", "Hello from backend!")
+// //     })
+// // --------------
+//     socket.on("disconnect", () => {
+//       console.log("User disconnect hua:", socket.id);
+//     });
+//   });
+
+
+//   // io ko server pe save kar rahe hain taaki dobara re-create na ho
+//   res.socket.server.io = io;
+//   global.io = io;
+
+//   res.end();
+// }
+import { Server } from "socket.io";
+import db from "../../lib/db"; // apna sahi relative path check kar lena
+
+// module-level Map — poore server-lifetime ke liye persist rahega,
+// har handler() call pe reset nahi hoga
+const onlineUsers = new Map(); // userId -> Set of socket ids (multi-device support)
+
+export default function handler(req, res) {
+  // agar socket server pehle se ban chuka hai, dobara mat banao
+  if (res.socket.server.io) {
+    console.log("Socket already running");
+    res.end();
+    return;
+  }
+
+  console.log("Starting socket server...");
+
+  // yaha 'io' hamara MAIN server object hai (poora group)
+  const io = new Server(res.socket.server, {
+    path: "/api/socket_io", // koi bhi custom path, frontend mein same use hoga
+  });
+
+  // jab bhi koi NAYA user connect hota hai, ye chalega
+  io.on("connection", (socket) => {
+    // is specific socket ke liye userId yahin store karenge,
+    // jab tak 'register' event se nahi milega tab tak null rahega
+    let currentUserId = null;
+
+    // FRONTEND se userId lekar us user ko uske apne room mein daalo
+    socket.on("register", (userId) => {
+      currentUserId = userId;
+      socket.join(`user:${userId}`); // is user ka personal room
+      console.log(`UserD ${userId} joined the room`);
+        // console.log("Registered userId:", userId, "| typeof:", typeof userId);
+
+      // ==========================================
+      // ONLINE STATUS — track karo jab user register ho
+      // ==========================================
+
+      if (!onlineUsers.has(userId)) {
+        onlineUsers.set(userId, new Set());
+      }
+      onlineUsers.get(userId).add(socket.id);
+
+      // agar ye is user ka PEHLA connection hai (naya online hua)
+      if (onlineUsers.get(userId).size === 1) {
+        broadcastOnlineStatus(io, userId, true);
+      }
+    });
+
+    // --------------
+    // jab frontend se say-hello event vhejega ye chalega
+    //     socket.on("say-hello", (data)=>{
+    // console.log("frontend ne vheja data", data)
+    // // aab isi user ko wapas reply vheejo
+    // socket.emit("say-hello-reply", "Hello from backend!")
+    //     })
+    // --------------
+
+    socket.on("disconnect", () => {
+      // agar ye socket kabhi register hi nahi hua, kuch mat karo
+      if (!currentUserId) {
+        console.log("Unregistered socket disconnect hua:", socket.id);
+        return;
+      }
+
+      const userSockets = onlineUsers.get(currentUserId);
+
+      if (userSockets) {
+        userSockets.delete(socket.id);
+
+        // agar user ka koi bhi connection nahi bacha (sab tabs/devices band)
+        if (userSockets.size === 0) {
+          onlineUsers.delete(currentUserId);
+
+          // turant offline mat karo — 10 sec grace period do
+          // (taaki quick refresh/network-flicker pe "offline" na dikhe)
+          const userIdForTimeout = currentUserId;
+
+          setTimeout(async () => {
+            if (!onlineUsers.has(userIdForTimeout)) {
+              try {
+                await db.execute(
+                  `UPDATE users SET last_seen_at = NOW() WHERE id = ?`,
+                  [userIdForTimeout]
+                );
+                broadcastOnlineStatus(io, userIdForTimeout, false);
+              } catch (error) {
+                console.error("Failed to update last_seen_at:", error);
+              }
+            }
+          }, 10000);
+        }
+      }
+
+      console.log("User disconnect hua:", socket.id, "userId:", currentUserId);
+    });
+  });
+
+  // io ko server pe save kar rahe hain taaki dobara re-create na ho
+  res.socket.server.io = io;
+  global.io = io;
+  global.onlineUsers = onlineUsers;
+
+  res.end();
+}
+
+// ==========================================
+// BROADCAST ONLINE STATUS
+// 'io' ko parameter ki tarah pass kiya, kyunki ye function
+// handler() ke bahar hai aur uske andar wale 'io' ko access
+// nahi kar sakta (closure scope ke bahar hai)
+// ==========================================
+
+async function broadcastOnlineStatus(io, userId, isOnline) {
+  try {
+    // check karo ye user apna online status show karna chahta hai ya nahi
+    const [rows] = await db.execute(
+      `SELECT is_online_status_visible FROM users WHERE id = ?`,
+      [userId]
+    );
+
+    if (!rows[0]?.is_online_status_visible) return; // toggle off, kisi ko mat batao
+
+    // sab connected clients ko batao
+    io.emit("user:status-changed", { userId, isOnline });
+  } catch (error) {
+    console.error("Failed to broadcast online status:", error);
+  }
+}
