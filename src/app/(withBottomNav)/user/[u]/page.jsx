@@ -23,6 +23,9 @@ import { useSelector } from "react-redux";
 import { setCurrentPost, setCurrentPosts, setIsViewingPost } from "@/redux/slices/stateSlice";
 import { useDispatch } from "react-redux";
 import DpImageViewer from "./components/DpImageViewer";
+import axiosInstance from "@/lib/axiosInstance";
+import ProfileLoading from "../../profile/components/ProfileLoading";
+
 
 export default function UserProfilePage() {
   const onlineIds = useSelector((state) => state?.onlineUsers?.ids);
@@ -30,6 +33,7 @@ export default function UserProfilePage() {
 const [currentUser, setcurrentUser] = useState({})
 const [postPage, setpostPage] = useState();
 const [postCount, setpostCount] = useState();
+  const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
 
 const currentUserPosts = useSelector((state) => state?.userState?.currentPosts);
 const [isDpImageViewing, setIsDpImageViewing] = useState(false)
@@ -38,9 +42,11 @@ const [isDpImageViewing, setIsDpImageViewing] = useState(false)
   const searchParams = useSearchParams();
   const source = searchParams.get("source"); // "VALUE" ya null
 
+  const [loading, setloading] = useState(true);
+
   const params = useParams();
   const router = useRouter();
-
+const [starting, setStarting] = useState(false);
   const username = params.u;
 
   // fetch current user api call 
@@ -65,14 +71,23 @@ useEffect(() => {
           data?.message || "Failed to load user"
         );
       }
-
-      setcurrentUser(data?.user);
-    //  set posts in a redux state variabel | this is the post of user whose profile is being viewed
-      dispatch(setCurrentPosts(data?.posts));
-      setpostCount(data?.count);
-      setpostPage(data?.page);
+// console.log(data?.user)
+      if (data?.user) {
+        setcurrentUser(data?.user);
+        //  set posts in a redux state variabel | this is the post of user whose profile is being viewed
+        dispatch(setCurrentPosts(data?.posts));
+        setpostCount(data?.count);
+        setpostPage(data?.page);
+        setloading(false);
+      }
+    //   setcurrentUser(data?.user);
+    // //  set posts in a redux state variabel | this is the post of user whose profile is being viewed
+    //   dispatch(setCurrentPosts(data?.posts));
+    //   setpostCount(data?.count);
+    //   setpostPage(data?.page);
 
     } catch (error) {
+      setloading(false);
       console.error("Error fetching current user:", error);
     }
   };
@@ -130,8 +145,36 @@ useEffect(() => {
     );
   };
 
+// WHEN CLICK ON MESSAGE BUTTON
+// Profile page ke handleMessageClick me:
+const handleMessageClick = async () => {
+  if (starting) return;
+  setStarting(true);
 
+  try {
+    const res = await axiosInstance.post("/api/conversations", {
+      targetUserId: currentUser?.id,
+    });
 
+    const conversationId = res?.data?.conversationId;
+
+    // otherUser ka data bhi query params me bhej do (encode karke)
+    const params = new URLSearchParams({
+      conversationId,
+      otherUserId: currentUser?.id,
+      otherUserName: currentUser?.fullName,
+      otherUserUsername: currentUser?.username,
+      otherUserImage: currentUser?.image || "",
+    });
+
+    router.push(`/chats?${params.toString()}`);
+  } catch (error) {
+    console.error("Failed to start conversation:", error);
+  } finally {
+    setStarting(false);
+  }
+};
+// WHEN CLICK ON MESSAGE BUTTONEND
   // WHEN CLICK ON IMAGE SHOW IMAGE VIEWER
   const isViewingPost = useSelector((state) => state?.userState?.isViewingPost);
   const dispatch = useDispatch();
@@ -139,7 +182,7 @@ useEffect(() => {
   const handleViewImage = (post) => {
 dispatch(setCurrentPost(post));
     dispatch(setIsViewingPost(true));
-    console.log(isViewingPost, "isViewingPost")
+    // console.log(isViewingPost, "isViewingPost")
     
   };
   
@@ -152,6 +195,17 @@ const handleViewDp = (currrenUser)=>{
  setIsDpImageViewing(true);
 } 
 // WHEN CLICK ON DP IMAGE END
+// console.log(currentUser)
+
+// if loading 
+if(loading){
+  return (
+<ProfileLoading></ProfileLoading>
+
+  )
+  }
+
+
   return (
     <main className="min-h-dvh bg-[#080808] text-white">
 
@@ -301,13 +355,15 @@ const handleViewDp = (currrenUser)=>{
                 </p>
 
                 <p className="text-[11px] text-white/45">
-                  Posts
+                 {loggedInUserId == currentUser?.id ? "Your Posts" :  "Posts"}
                 </p>
               </div>
 
               <div className="h-8 w-px bg-white/[0.08]" />
 
-              <div className="text-center">
+   {
+     loggedInUserId == currentUser?.id ? null :
+                <div className="text-center">
                 <p className="text-lg font-bold">
                   {currentUser?.distance}
                 </p>
@@ -316,6 +372,7 @@ const handleViewDp = (currrenUser)=>{
                   km away
                 </p>
               </div>
+   }
             </div>
           </div>
 
@@ -323,7 +380,7 @@ const handleViewDp = (currrenUser)=>{
 
           <div className="mt-5">
             <h1 className="text-xl font-bold">
-              {currentUser?.fullName}
+              {currentUser?.fullName} {loggedInUserId == currentUser?.id ? <span className="text-green-500 text-sm">(You)</span> : null}
             </h1>
 
             <p className="mt-0.5 text-sm text-white/45">
@@ -332,8 +389,11 @@ const handleViewDp = (currrenUser)=>{
           </div>
 
           {/* Action */}
-
-          <button
+          {
+            loggedInUserId == currentUser?.id ? null :           <button
+            type="button"
+  onClick={handleMessageClick}
+  disabled={starting}
             className="
               mt-4
               flex
@@ -352,8 +412,13 @@ const handleViewDp = (currrenUser)=>{
             "
           >
             <LuMessageSquareMore className="text-sm" />
-            Message
+         {starting ? "Opening..." : "Message"}
           </button>
+
+          }
+
+
+
 
           {/* Distance */}
 
@@ -396,7 +461,10 @@ const handleViewDp = (currrenUser)=>{
               </p>
             </div>
           </div>
-          <div
+
+      {
+        loggedInUserId == currentUser?.id ? null :         
+            <div
             className="
               mt-4
               flex
@@ -436,6 +504,7 @@ const handleViewDp = (currrenUser)=>{
             </div>
           </div>
 
+      }
           {/* =========================================
               USER INFORMATION
           ========================================= */}

@@ -6,11 +6,17 @@ import storage from "redux-persist/lib/storage"; // uses localStorage
 import stateReducer from "../slices/stateSlice";
 import postsReducer from "../slices/posts/postsSlice";
 import onlineUsersReducer from "../slices/onlineuser/onlineuserSlice";
+import messagesReducer from "../slices/message/messagesSlice";
+
+import unreadCountReducer from "../slices/message/unreadCountSlice";
+
 
 const rootReducer = combineReducers({
   userState: stateReducer,
   posts: postsReducer,
   onlineUsers: onlineUsersReducer,
+  messages:messagesReducer,
+    unreadCount: unreadCountReducer,
 });
 
 const persistConfig = {

@@ -18,6 +18,8 @@ import sampleAv from "../../../../../../public/uploads/profiles/sampleAv.jpg"
 export default function DpImageViewer({dpImage, setIsDpImageViewing, isDpImageViewing}) {
     const dispatch = useDispatch();
     const [currentUser, setcurrentUser] = useState(dpImage)
+  const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
+
     if(!currentUser) {
         setcurrentUser(dpImage)
     }
@@ -296,7 +298,10 @@ setLiked(data?.liked);
           "
         >
           {/* Like */}
-          <button
+          
+          {
+            loggedInUserId == currentUser?.id ? null :        
+            <button
             type="button"
             onClick={handleLike}
             aria-label={liked ? "Unlike" : "Like"}
@@ -314,7 +319,7 @@ setLiked(data?.liked);
             "
           >
             {likeLoading ? (
-              <div className="flex items-center justify-center">
+              <div className="flex items-center justify-center z-[9999990]">
                 <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 animate-spin"></div>
               </div>
             ) : liked ? (   
@@ -324,6 +329,7 @@ setLiked(data?.liked);
               <FaRegHeart className="text-[23px] text-white" />
               )}
           </button>
+          }
 
           {/* Like count */}
           <div className="flex-1 px-4">

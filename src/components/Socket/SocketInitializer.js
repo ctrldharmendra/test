@@ -30,6 +30,7 @@ import {
   userWentOnline,
   userWentOffline,
 } from "@/redux/slices/onlineuser/onlineuserSlice";
+import { setUnreadCount } from "@/redux/slices/message/unreadCountSlice";
 
 export default function SocketInitializer() {
   const dispatch = useDispatch();
@@ -63,6 +64,12 @@ useEffect(() => {
     dispatch(isOnline ? userWentOnline(userId) : userWentOffline(userId));
   };
 
+
+      // unread badge real-time update
+    const handleUnreadUpdate = ({ totalUnreadCount }) => {
+      dispatch(setUnreadCount(totalUnreadCount));
+    };
+
   const handleConnect = () => {
     if (loggedInUserId) {
       socket.emit("register", loggedInUserId);
@@ -72,6 +79,8 @@ useEffect(() => {
   socket.on("online-users:snapshot", handleSnapshot);
   socket.on("user:status-changed", handleStatusChange);
   socket.on("connect", handleConnect);
+      socket.on("unread:count-updated", handleUnreadUpdate); // NAYA
+
 
   // agar socket already connected hai (jaisa mostly hota hai jab
   // component mount hone tak connection ban chuka ho), turant bhi register karo
@@ -82,6 +91,7 @@ useEffect(() => {
   return () => {
     socket.off("online-users:snapshot", handleSnapshot);
     socket.off("user:status-changed", handleStatusChange);
+          socket.off("unread:count-updated", handleUnreadUpdate);
     socket.off("connect", handleConnect);
   };
 }, [loggedInUserId]);

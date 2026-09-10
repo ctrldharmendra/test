@@ -187,7 +187,7 @@ setLiked(data?.post?.likedByMe);
   return (
     <div
       className="
-        fixed inset-0 z-[100]
+        fixed inset-0 z-[9999990]
         flex items-center justify-center
         bg-black
       "

@@ -25,7 +25,7 @@ import { setUnSeenNotificationCount } from "@/redux/slices/stateSlice";
 
 
 
-export default function BottomNav() {
+export default function TopNav() {
   const dispatch = useDispatch();
   const pathname = usePathname();
 const notificationCount = useSelector((state) => state?.userState?.unSeenNotificationCount);
@@ -116,7 +116,7 @@ useEffect(() => {
         pointer-events-none
         fixed
         inset-x-0
-        bottom-0
+        top-0
         z-50
         flex
         justify-center
@@ -142,8 +142,11 @@ useEffect(() => {
             grid
             grid-cols-7
             items-center
+
+            pb-[2px]
+           border-[1px] border-[#292929c9]
+
             px-1
-            py-2
           "
         >
           {navItems.map((item) => {
@@ -166,11 +169,11 @@ useEffect(() => {
                   relative
                   flex
                   min-w-0
+                  pt-[5px]
                   flex-col
                   items-center
                   justify-center
                   rounded-xl
-                  py-1
                   transition-transform
                   duration-200
                   active:scale-90
@@ -223,20 +226,20 @@ useEffect(() => {
                 {/* Center Post Button */}
                 {item.isPost && (
                   <span
-                    className="
+                     className={`
                       flex
-                      h-11
-                      w-11
+                      h-8
+                      relative
                       items-center
                       justify-center
-                      rounded-full
-                      bg-white
-                      text-black
-                      shadow-[0_6px_25px_rgba(255,255,255,0.12)]
-                      transition-transform
+                      transition-all
                       duration-200
-                      group-active:scale-90
-                    "
+                      ${
+                        isActive
+                          ? "scale-105 text-white"
+                          : "text-white/40"
+                      }
+                    `}
                   >
                     <Icon className="text-[18px]" />
                   </span>
