@@ -56,21 +56,25 @@ export async function POST(request) {
             );
 
             if (!user.length) {
-                return NextResponse.json({ message: "Invalid email or password" }, { status: 401 });
+                return NextResponse.json({ message: "Invalid email or password", success:false }, { status: 401 });
             }
+
+
+                const refreshToken = createRefreshToken(user);
+            const accessToken = createAccessToken(user);
 
      const response  =  NextResponse.json(
             {
                 message:"Login successful",
              user: user[0],
              success:true,
+                accessToken: accessToken,
+                refreshToken: refreshToken,
             }, 
             { status: 200 }
         );
 
-
-            const refreshToken = createRefreshToken(user);
-            const accessToken = createAccessToken(user);
+        
             //   set token in cookie 
             response.cookies.set('refreshToken', refreshToken, {
                 httpOnly: true,
@@ -85,14 +89,18 @@ export async function POST(request) {
                 maxAge: ms(process.env.ACCESS_TOKEN_EXPIRATION)
             });
 
+            
+
+
+
             return response;
         } catch (error) {
             await connection.rollback();
-            return NextResponse.json({ message: error.message }, { status: 401 });
+            return NextResponse.json({ message: error.message, success:false }, { status: 401 });
         } finally {
             connection.release();
         }
     } catch (error) {
-        return NextResponse.json({ message: error.message }, { status: 500 });
+        return NextResponse.json({ message: error.message, success:false}, { status: 500 });
     }
 }

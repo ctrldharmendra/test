@@ -48,9 +48,11 @@ const dispatch = useDispatch();
 
         dispatch(setLoggedInUserId(data?.user?.id))
         toast.success("Login successful");
-        router.push("/explore");
+        router.replace("/explore");
 
       }
+
+      
 
       if (!response.ok) {
         toast.error(data.message || "Invalid email or password");

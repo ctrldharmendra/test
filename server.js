@@ -376,10 +376,32 @@ function getDb() {
 }
 
 app.prepare().then(() => {
-  const server = createServer((req, res) => {
-    const parsedUrl = parse(req.url, true);
-    handle(req, res, parsedUrl);
-  });
+  // const server = createServer((req, res) => {
+  //   const parsedUrl = parse(req.url, true);
+  //   handle(req, res, parsedUrl);
+  // });
+const server = createServer((req, res) => {
+  // Allow all CORS origins
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
+  const parsedUrl = parse(req.url, true);
+  handle(req, res, parsedUrl);
+});
 
   const io = new Server(server, {
     path: "/api/socket_io",
