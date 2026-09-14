@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Link from "next/link";
 import { CgSpinner } from "react-icons/cg";
 import Image from "next/image";
+import ExploreLoading from "./component/ExploreLoading";
 
 export default function HomePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -33,7 +34,7 @@ const dispatch = useDispatch();
 
 
     const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [likeLoading, setLikeLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -144,9 +145,11 @@ const handleDragEnd = (event, info) => {
         }
 // console.log(response)
         setUsers(data?.users || []);
+        setLoading(false);
+
 
       } catch (error) {
-
+        setLoading(false);
         console.error("Explore fetch error:", error);
 
         setError(
@@ -172,6 +175,12 @@ const handleDragEnd = (event, info) => {
 
 
 // console.log(users, "users")
+
+if(loading){
+  return (
+    <ExploreLoading></ExploreLoading>
+  )
+}
 
   return (
     <main className="min-h-dvh bg-neutral-950 text-white">
@@ -238,7 +247,7 @@ const handleDragEnd = (event, info) => {
   height={200}
     src={currentUser?.image}
     alt={currentUser?.fullName}
-    className="absolute inset-0 h-full w-full select-none object-cover"
+    className="absolute inset-0 rounded rounded-[30px] h-full w-full select-none object-cover"
     draggable={false}
   />
 

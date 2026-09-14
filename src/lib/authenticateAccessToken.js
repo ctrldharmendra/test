@@ -55,7 +55,9 @@ export default async function authenticateAccessToken(request){
     };
     
   } catch (error) {
-    // console.log(error)
+// delete old cookkie
+  // cookieStore.delete('accessToken');
+
      return {
        ok: false,
        success:false,

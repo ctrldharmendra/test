@@ -22,6 +22,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RiDislikeFill } from "react-icons/ri";
 import { IoEye } from "react-icons/io5";
 import Link from "next/link";
+import NotificationLoading from "./NotificationLoading";
 
 
 export default function NotificationsPage() {
@@ -31,6 +32,9 @@ export default function NotificationsPage() {
   const menuRef = useRef(null);
 const dispatch = useDispatch();
   const onlineIds = useSelector((state) => state?.onlineUsers?.ids);
+
+
+  const [loading, setloading] = useState(true)
 
 // T----------------------------
 //   useEffect(() => {
@@ -81,6 +85,7 @@ const dispatch = useDispatch();
 useEffect(() => {
     const fetchNotifications = async () => {
       try {
+        setloading(true)
         const response = await fetch(`/api/notifications`, {
           method: "GET",
           credentials: "include",
@@ -93,7 +98,9 @@ useEffect(() => {
           );
         }
         setNotifications(data?.notifications || []);
+        setloading(false)
       } catch (error) {
+        setloading(false)
         console.error("Failed to fetch notifications:", error);
       }
     };
@@ -421,6 +428,13 @@ const markASingleNotifiRead = async (notificationId) => {
     (notification) => !notification.is_read
   ).length;
 
+
+
+  if(loading){
+    return (
+      <NotificationLoading></NotificationLoading>
+    )
+  }
   return (
     <main className="min-h-dvh bg-[#080808] text-white">
 
