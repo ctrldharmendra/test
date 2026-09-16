@@ -24,8 +24,11 @@ import SettingsSection from "./components/SettingSections";
 import SettingItem from "./components/SettingItems";
 import ConfirmationModal from "./components/ConfirmationModal";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setLoggedInUserId } from "@/redux/slices/stateSlice";
 
 export default function SettingsPage() {
+  const dispatch = useDispatch();
   // SETTINGS STATE
   const [settings, setSettings] = useState({
     // Profile View Notification: false,
@@ -76,6 +79,10 @@ export default function SettingsPage() {
     console.log(`${key}:`, nextValue);
     if(key === "Profile View Notification"){
       toggleProfileViewNotify();
+    }
+
+    if(key === "Log out?"){
+      handleLogout();
     }
 
     setConfirmation({
@@ -158,6 +165,40 @@ export default function SettingsPage() {
         // setis_profile_view_notify(data?.data?.[0]?.is_profile_view_notify);
       } catch (error) {
         console.error("Error fetching is_profile_view_notify:", error);
+      }
+    };
+
+    // log out api 
+    const handleLogout = async () => {
+      try {
+        const response = await fetch(
+          `/api/auth/logout`,
+          {
+            method: "POST",
+            credentials: "include",
+            cache: "no-store",
+          }
+        );
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(
+            data?.message || "Failed to log out"
+          );
+        }
+        if(data?.success == true){
+          toast.success("Logged out successfully.");
+          dispatch(setLoggedInUserId(null));
+
+          // wait 2 sec 
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 3000);
+        }
+
+        console.log(data, "LOGOUT DATA")
+      } catch (error) {
+        console.error("Error fetching log out:", error);
       }
     };
 
@@ -544,8 +585,12 @@ export default function SettingsPage() {
               description="Sign out from this device."
               danger
               type="navigation"
-              onClick={() =>
-                console.log("Logout")
+                     onClick={() =>
+                requestToggle(
+                  "Log out?",
+                  "Are you sure, you want to log out?",
+                  "You need your credentials to log in next time again."
+                )
               }
             />
 

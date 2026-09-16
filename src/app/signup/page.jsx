@@ -3,8 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { FaLocationCrosshairs, FaMagnifyingGlass } from "react-icons/fa6";
+import { FaArrowRight, FaLocationCrosshairs, FaMagnifyingGlass } from "react-icons/fa6";
 import ProfileImage from "./components/ProfileImage";
+import Link from "next/link";
+import useDebounce from "@/components/debounceSearch/DebouncedSearch";
 
 export default function RegisterPage() {
   const [step, setStep] = useState(1);
@@ -21,10 +23,10 @@ export default function RegisterPage() {
   const searchWrapperRef = useRef(null);
 
   const [formData, setformData] = useState({
-    username: "",
-    fullname: "",
-    email: "",
-    gender: "",
+    username: "Mahesh",
+    fullname: "Mahesh",
+    email: "bibika@gmail.com",
+    gender: "Male",
     dob: "",
     password: "",
     location_source: "",
@@ -36,7 +38,136 @@ export default function RegisterPage() {
   const [profileImage, setProfileImage] = useState(null);
 const [profileImagePreview, setProfileImagePreview] = useState("");
 
+
+
+
+
+
+// call api to check if username, email is already taken | show in real time 
+// function username check
+const [isTaken, setisTaken] = useState(false)
+  const [loadingUsername, setLoadingUsername] = useState(false);
+
+const [isEmailTaken, setisEmailTaken] = useState(false)
+const [emailLoading, setemailLoading] = useState(false)
+
+// check for username, email availability
+const debouncedSearchUsername = useDebounce(formData.username, 1000);
+const debouncedSearchEmail = useDebounce(formData.email, 1000);
+
+const checkUserNameAvailability = async () => {
+  setLoadingUsername(true)
+
+  try {
+  const res = await fetch(`/api/istaken/username?username=${debouncedSearchUsername}`);
+  const data = await res.json();
+  // console.log("api data", data)
+
+if(data?.taken){
+  setisTaken(data?.message)
+}
+if(!data?.taken){
+  setisTaken(data?.message)
+}
+if(data?.success){
+  setLoadingUsername(false)
+}
+
+} catch (error) {
+  console.log(error);
+  setLoadingUsername(false)
+
+  return;
+}
+};
+// function email check
+const checkEmailAvailability = async () => {
+  setemailLoading(true)
+
+  try {
+  const res = await fetch(`/api/istaken/email?email=${debouncedSearchEmail}`);
+  const data = await res.json();
+  // console.log("api data", data)
+
+if(data?.taken){
+  setisEmailTaken(data?.message)
+}
+if(!data?.taken){
+  setisEmailTaken(data?.message)
+}
+if(data?.success){
+  setemailLoading(false)
+}
+
+} catch (error) {
+  console.log(error);
+  setemailLoading(false)
+
+  return;
+}
+};
+
+useEffect(() => {
+  if (debouncedSearchUsername.trim().length < 3) {
+    return;
+  }
+checkUserNameAvailability();
+}, [debouncedSearchUsername])
+useEffect(() => {
+// call api to check if username, email is already taken
+  if (debouncedSearchEmail.trim().length < 3) {
+    return;
+  }
+checkEmailAvailability();
+}, [debouncedSearchEmail])
+
+// make checking tryue username 
+useEffect(() => {
+    setLoadingUsername(false)
+  if(formData.username.trim().length > 2){
+    setLoadingUsername(true)
+}
+setisTaken(false)
+}, [formData.username])
+// make checking tryue email 
+useEffect(() => {
+    setemailLoading(false)
+  if(formData.email.trim().length > 2){
+    setemailLoading(true)
+}
+setisEmailTaken(false)
+}, [formData.email])
+
+// call api to check if username, email is already taken | show in real time end
+
+
   const handleNext = () => {
+// check profile image
+if(!profileImage){
+  toast.error("Please upload a profile image");
+  return;
+}
+
+    // if dob is empty then show error
+    if(!formData.dob){
+      toast.error("Please enter your date of birth");
+      return;
+    }
+// if dob is not 18 years old then show error
+const dob = new Date(formData.dob);
+const today = new Date();
+
+const cutoffDate = new Date(
+  today.getFullYear() - 17,
+  today.getMonth(),
+  today.getDate()
+);
+const is17OrOlder = dob <= cutoffDate;
+
+if(!is17OrOlder){
+  toast.error("You must be 18 years old or older to register");
+  return;
+}
     setStep(2);
   };
 
@@ -189,6 +320,8 @@ if (profileImage) {
   }
   };
 
+
+
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6">
       <div className="mx-auto w-full max-w-md">
@@ -230,7 +363,12 @@ if (profileImage) {
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Username
+                  Username 
+                  {isTaken && isTaken?.includes("already") && <span className="text-red-500 text-xs pl-[10px]">Username is taken.</span>}
+                  {isTaken && isTaken?.includes("available") && <span className="text-green-500 text-xs pl-[10px]">Username is available.</span>}
+                  {loadingUsername && <span className="text-blue-500 text-xs pl-[10px]">Checking...</span>}
+                  {formData.username.trim().length > 0 && formData.username.trim().length <3 && <span className="text-blue-500 text-xs pl-[10px]">Minimum 3 characters required.</span>}
+
                 </label>
                 <input
                   type="text"
@@ -274,6 +412,11 @@ if (profileImage) {
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700">
                   Email
+                 
+                         {isEmailTaken && isEmailTaken?.includes("already") && <span className="text-red-500 text-xs pl-[10px]">Email is taken.</span>}
+                  {isEmailTaken && isEmailTaken?.includes("available") && <span className="text-green-500 text-xs pl-[10px]">Email is available.</span>}
+                  {emailLoading && <span className="text-blue-500 text-xs pl-[10px]">Checking...</span>}
+                  {formData.email.trim().length > 0 && formData.email.trim().length <3 && <span className="text-blue-500 text-xs pl-[10px]">Minimum 3 characters required.</span>}
                 </label>
                 <input
                   type="email"
@@ -305,7 +448,7 @@ if (profileImage) {
                   </option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
-                  <option value="Other">Other</option>
+                  {/* <option value="Other">Other</option> */}
                 </select>
               </div>
 
@@ -340,11 +483,18 @@ if (profileImage) {
                   className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
+                        <div className="mt-1 flex text-center text-xs text-yellow-600">
+           <span> If you have an account, you can login instead. </span>
+            <Link  href="/login" className="font-bold flex gap-1 items-center text-rose-400 transition hover:text-rose-300">
+            <FaArrowRight></FaArrowRight> Login
+            </Link>
+          </div>
 
               <button
+              disabled={isTaken && isTaken.includes("already") || isEmailTaken && isEmailTaken.includes("already")}
                 type="button"
                 onClick={handleNext}
-                className="mt-2 w-full rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.99]"
+                className={`mt-2 w-full rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.99] ${isTaken && isTaken.includes("already") || isEmailTaken && isEmailTaken.includes("already") ? "opacity-20 " : ""}`}
               >
                 Next
               </button>
