@@ -95,7 +95,7 @@ const ProfileImage = ({profileImage, setProfileImage, profileImagePreview, setPr
       id="profile-image"
       type="file"
       accept="image/*"
-      capture="user"
+      // capture="user"
       className="hidden"
       onChange={(e) => {
         const file = e.target.files?.[0];

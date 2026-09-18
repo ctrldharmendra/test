@@ -7,6 +7,7 @@ import { FaArrowRight, FaLocationCrosshairs, FaMagnifyingGlass } from "react-ico
 import ProfileImage from "./components/ProfileImage";
 import Link from "next/link";
 import useDebounce from "@/components/debounceSearch/DebouncedSearch";
+import GoogleSignInButton from "@/components/GoogleSignInButton/GoogleSignInButton";
 
 export default function RegisterPage() {
   const [step, setStep] = useState(1);
@@ -153,6 +154,10 @@ if(!profileImage){
       toast.error("Please enter your date of birth");
       return;
     }
+    if(!formData.password || formData.password.length < 8){
+      toast.error("Please enter a password with at least 8 characters");
+      return;
+    }
 // if dob is not 18 years old then show error
 const dob = new Date(formData.dob);
 const today = new Date();
@@ -170,6 +175,8 @@ if(!is17OrOlder){
 }
     setStep(2);
   };
+
+const [showLocationModal, setShowLocationModal] = useState(false); // NAYA
 
 const getLocation = () => {
   if (!navigator.geolocation) {
@@ -198,9 +205,22 @@ const getLocation = () => {
 
       setSearchQuery("");
       setSearchResults([]);
+      setShowLocationModal(false); // agar modal khula tha, band karo
     },
-    () => {
-      toast.error("Unable to get your location.");
+    (error) => {
+        console.log("Geolocation error code:", error.code, error.message); // TEMP DEBUG
+      // NAYA — error code ke hisaab se alag response
+      if (error.code === 1) {
+        // Permission denied — user ne block kiya tha
+        toast.error("Location access denied. Please enable it in browser settings.");
+      } else if (error.code === 2) {
+        // Position unavailable — device location off hai
+        setShowLocationModal(true); // custom popup dikhao
+      } else if (error.code === 3) {
+        toast.error("Location request timed out. Please try again.");
+      } else {
+        toast.error("Unable to get your location.");
+      }
     },
     {
       enableHighAccuracy: true,
@@ -320,23 +340,61 @@ if (profileImage) {
   }
   };
 
-
+// ----------------------------
+// console.log(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID, "process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID")
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6">
+    <main className="min-h-screen bg-[#cdcdcd] px-1 py-8 sm:px-6">
       <div className="mx-auto w-full max-w-md">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+          <h1 className="text-2xl  font-[cursive] text-slate-800 sm:text-3xl">
             Create your account
           </h1>
 
-          <p className="mt-2 text-sm text-slate-500">
-            {step === 1 ? "Enter your account details" : "Add your location"}
-          </p>
+
         </div>
 
-        {/* Progress */}
+
+
+<div className="flex justify-center items-center">
+  <GoogleSignInButton />
+</div>
+
+      </div>
+        <div className="max-w-xl mx-auto pt-6 px-1">
+
+      
+      {[1].map((item, index) => (
+        <details
+          key={index}
+          className="group border border-gray-200  rounded-lg overflow-hidden transition-all duration-300 bg-white shadow-sm"
+        >
+          <summary className="flex justify-between items-center cursor-pointer font-medium text-gray-700  select-none hover:bg-gray-50 transition-colors">
+            
+        <div className="flex w-full items-center gap-2 py-2 text-sm text-slate-600">
+
+     
+                    <div className="h-px w-full bg-slate-200"></div>
+                    OR
+                    <div className="h-px w-full bg-slate-200"></div>
+                </div>
+            {/* Rotating chevron icon */}
+            <svg
+              className="w-5 h-5 text-gray-500 transform transition-transform duration-300 group-open:rotate-180"
+              xmlns="http://w3.org"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          
+          <div className="p-4 pt-0 text-gray-600 text-sm leading-relaxed border-t border-gray-100">
+    
+<div>
+          {/* Progress */}
         <div className="mb-6 flex items-center gap-2">
           <div
             className={`h-1.5 flex-1 rounded-full ${
@@ -350,10 +408,13 @@ if (profileImage) {
           />
         </div>
 
+
+
+
         <form
           ref={formRef}
           onSubmit={handleSubmit}
-          className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-7"
+          className="rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200 sm:p-7"
         >
           {/* STEP 1 */}
           {step === 1 && (
@@ -490,6 +551,8 @@ if (profileImage) {
             </Link>
           </div>
 
+
+
               <button
               disabled={isTaken && isTaken.includes("already") || isEmailTaken && isEmailTaken.includes("already")}
                 type="button"
@@ -500,6 +563,47 @@ if (profileImage) {
               </button>
             </div>
           )}
+
+{showLocationModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+      <div className="mb-4 flex justify-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-50">
+          <FaLocationCrosshairs className="text-2xl text-blue-600" />
+        </div>
+      </div>
+
+      <h3 className="text-center text-lg font-semibold text-slate-900">
+        Turn on your location
+      </h3>
+
+      <p className="mt-2 text-center text-sm text-slate-500">
+        We couldn't detect your location. Please make sure location services
+        are turned on for your device and browser, then try again.
+      </p>
+
+      <div className="mt-5 flex gap-3">
+        <button
+          type="button"
+          onClick={() => setShowLocationModal(false)}
+          className="flex-1 rounded-xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-200"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setShowLocationModal(false);
+            getLocation(); // retry
+          }}
+          className="flex-1 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+        >
+          Try Again
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
           {/* STEP 2 */}
           {step === 2 && (
@@ -531,7 +635,9 @@ if (profileImage) {
 
               {/* Search input */}
               <div className="relative" ref={searchWrapperRef}>
-                <div className="relative">
+  {
+    !formData.longitude && formData.latitude && (
+                    <div className="relative">
                   <FaMagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
                   <input
                     type="text"
@@ -544,6 +650,8 @@ if (profileImage) {
                     className="w-full rounded-xl border border-slate-300 pl-10 pr-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
                 </div>
+    )
+  }
 
                 {showDropdown && searchResults.length > 0 && (
                   <div className="absolute z-10 mt-1 w-full rounded-xl border border-slate-200 bg-white shadow-lg max-h-60 overflow-y-auto">
@@ -628,7 +736,11 @@ if (profileImage) {
             </div>
           )}
         </form>
-      </div>
+        </div>
+          </div>
+        </details>
+      ))}
+    </div>
     </main>
   );
 }

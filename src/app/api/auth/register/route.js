@@ -35,7 +35,7 @@ export async function POST(request){
     const profileImage = formData.get("dp");
 
         // 2. Basic validation
-    if ( !email || !password || !fullname || !username || !dob || !gender) {return NextResponse.json({ message: "Required fields are missing", },{status: 400,});}
+    if ( !email || !password || !fullname || !username || !dob || !gender || !latitude || !longitude) {return NextResponse.json({ message: "Required fields are missing", },{status: 400,});}
 
         // 3. Validate profile image
     if (!profileImage || !(profileImage instanceof File)) {return NextResponse.json({message: "Profile image is required",},{status: 400, });}

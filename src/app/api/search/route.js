@@ -52,7 +52,7 @@ export async function POST(request, { params}){
     //   get search value from body 
      const { search } = await request.json();
 
-     console.log(search, "CONTROLLER")
+    //  console.log(search, "CONTROLLER")
 
   try {
     const loggedInUser = await getUserFromToken();
@@ -67,12 +67,19 @@ export async function POST(request, { params}){
 
     // check if search history already exists, if yes, update it, else create a new one
 const [searchHistory] = await db.execute(
-    `SELECT id 
-     FROM search_history 
-     WHERE LOWER(data) = LOWER(?) 
-       AND user_id = ?`,
-    [search, loggedInUserId]
+  `SELECT id 
+   FROM search_history 
+   WHERE data = ?
+     AND user_id = ?`,
+  [search, loggedInUserId]
 );
+
+// console.log(searchHistory, "SEARCH HIS");
+// console.log(loggedInUserId, "LOGGEDIN USER ID");
+
+
+
+
 
 // update if found
 if (searchHistory.length > 0){
@@ -108,6 +115,12 @@ return NextResponse.json(
    
   } catch (error) {
     console.log(error)
+    if (error.code == "ER_DUP_ENTRY") {
+      return NextResponse.json(
+        { success: false, message: "Search already exists" },
+        { status: 400 }
+      );
+    }
      return NextResponse.json(
       { success: false, message: error.message || "Failed to post search history" },
       { status: 500 }

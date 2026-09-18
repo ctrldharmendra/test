@@ -14,6 +14,7 @@ import {
   FaCheck,
 } from "react-icons/fa6";
 import { useSelector } from "react-redux";
+import GoogleSignInButton from "@/components/GoogleSignInButton/GoogleSignInButton";
 
 export default function Home() {
 const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
@@ -78,6 +79,22 @@ const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
                 {loggedInUserId ? "Go to Home page" : "Create Account"}
                 <FaArrowRight className="text-xs transition-transform group-hover:translate-x-1" />
               </Link>
+
+      { !loggedInUserId && (
+        <>
+        <div className="flex w-full items-center gap-2 py-2 text-sm text-slate-200">
+
+     
+                    <div className="h-px w-full bg-slate-200"></div>
+                    OR
+                    <div className="h-px w-full bg-slate-200"></div>
+                </div>
+        <div className="flex w-full items-center gap-2 py-2 text-sm">
+            <GoogleSignInButton />
+          </div>        
+        </>
+
+      )}
 
       { !loggedInUserId && (
         <Link href="/login" className="flex flex-1 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-sm font-semibold text-white/80 transition hover:bg-white/[0.08] active:scale-[0.97]">

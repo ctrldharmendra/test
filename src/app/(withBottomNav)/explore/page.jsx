@@ -292,7 +292,76 @@ if(loading){
         {currentUser?.distance} km away
       </div>
     </div>
+        {/* Controls */}
+        <div className="relative z-30 flex items-center justify-center gap-4 pb-[7px] px-5 pt-1">
 
+          {/* Previous */}
+          <button
+            onClick={previousUser}
+            disabled={currentIndex === 0}
+            className="
+              flex h-8 w-8 items-center justify-center
+              rounded-full border border-white/10
+              bg-white/10
+              text-white
+              shadow-lg
+              backdrop-blur-xl
+              transition
+              active:scale-90
+              disabled:cursor-not-allowed
+              disabled:opacity-30
+            "
+            aria-label="Previous user"
+          >
+            <FaChevronLeft className="text-xl" />
+          </button>
+
+          {/* Like */}
+          <button
+            onClick={toggleLike}
+            className="
+              flex h-[48px] w-[48px] items-center justify-center
+              rounded-full
+              bg-white
+              text-red-500
+              shadow-[0_10px_40px_rgba(0,0,0,0.35)]
+              transition
+              active:scale-90
+            "
+            aria-label="Like"
+          >
+{
+  likeLoading ? <CgSpinner className="text-[20px] text-red-500" /> : 
+   currentUser?.dpLikedByMe ?  <FaHeart className="text-[20px] text-red-500" /> :<FaRegHeart className="text-[20px]" />
+  
+}
+              
+      
+                
+          </button>
+
+          {/* Next */}
+          <button
+            onClick={nextUser}
+            disabled={currentIndex === users.length - 1}
+            className="
+              flex h-8 w-8 items-center justify-center
+              rounded-full border border-white/10
+              bg-white/10
+              text-white
+              shadow-lg
+              backdrop-blur-xl
+              transition
+              active:scale-90
+              disabled:cursor-not-allowed
+              disabled:opacity-30
+            "
+            aria-label="Next user"
+          >
+            <FaChevronRight className="text-xl" />
+          </button>
+
+        </div>
     {/* Profile Button */}
     {/* <Link
 
@@ -396,76 +465,7 @@ if(loading){
           </div>
         </section>
 
-        {/* Controls */}
-        <div className="relative z-30 flex items-center justify-center gap-4 px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-1">
 
-          {/* Previous */}
-          <button
-            onClick={previousUser}
-            disabled={currentIndex === 0}
-            className="
-              flex h-8 w-8 items-center justify-center
-              rounded-full border border-white/10
-              bg-white/10
-              text-white
-              shadow-lg
-              backdrop-blur-xl
-              transition
-              active:scale-90
-              disabled:cursor-not-allowed
-              disabled:opacity-30
-            "
-            aria-label="Previous user"
-          >
-            <FaChevronLeft className="text-xl" />
-          </button>
-
-          {/* Like */}
-          <button
-            onClick={toggleLike}
-            className="
-              flex h-[48px] w-[48px] items-center justify-center
-              rounded-full
-              bg-white
-              text-red-500
-              shadow-[0_10px_40px_rgba(0,0,0,0.35)]
-              transition
-              active:scale-90
-            "
-            aria-label="Like"
-          >
-{
-  likeLoading ? <CgSpinner className="text-[20px] text-red-500" /> : 
-   currentUser?.dpLikedByMe ?  <FaHeart className="text-[20px] text-red-500" /> :<FaRegHeart className="text-[20px]" />
-  
-}
-              
-      
-                
-          </button>
-
-          {/* Next */}
-          <button
-            onClick={nextUser}
-            disabled={currentIndex === users.length - 1}
-            className="
-              flex h-8 w-8 items-center justify-center
-              rounded-full border border-white/10
-              bg-white/10
-              text-white
-              shadow-lg
-              backdrop-blur-xl
-              transition
-              active:scale-90
-              disabled:cursor-not-allowed
-              disabled:opacity-30
-            "
-            aria-label="Next user"
-          >
-            <FaChevronRight className="text-xl" />
-          </button>
-
-        </div>
         </>
     )
    }

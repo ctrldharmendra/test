@@ -33,6 +33,7 @@ const dispatch = useDispatch();
 
   const [hasMore, setHasMore] = useState(0)
   const [totalCount, settotalCount] = useState(0)
+  const [didResponseHasUser, setDidResponseHasUser] = useState(0)
 
 
 
@@ -71,6 +72,10 @@ const dispatch = useDispatch();
 
   // WHEN CLICK ON SEARCH THEN CALL SEARCH API 
 const handleSearch = async (searchTerm = search) => {
+
+  if(searchTerm.trim().length < 3){
+    return toast.error("Please enter atleast 3 characters");
+  }
   try {
     setrecentSearchLoadingStat(true);
 
@@ -91,20 +96,22 @@ const handleSearch = async (searchTerm = search) => {
 
     // console.log(data, "DATA SEARCHED USER");
 
+    setDidResponseHasUser(1)
 if(data?.users?.length > 0){  
+      setDidResponseHasUser(0)
       dispatch(setSearchedUsers(data?.users || []));
+      settotalCount(data?.totalCount);
+      setHasMore(data?.hasMore);
 }
-
-    settotalCount(data?.totalCount);
-    setHasMore(data?.hasMore);
   } catch (error) {
+    setDidResponseHasUser(0)
     console.error("Search error:", error);
   } finally {
     setrecentSearchLoadingStat(false);
   }
 };
   // WHEN CLICK ON SEARCH THEN CALL SEARCH API END
-  
+  console.log(didResponseHasUser)
 
 // DELETE PARTICULAR SEARCH HISTORY | WHEN CLICK ON X
 const handleDeleteParticularSearchHIstory = async(searchHistoryId) =>{
@@ -358,8 +365,16 @@ fetchRecentSearches()
   )
 }
 {/* RECENTLY SEARCHED USERS FROM REDUX TOOLKIT STATE END */}
-
-
+  {didResponseHasUser == 1 && (
+      <div className="mt-4">  
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-xs w-full text-center p-[6px] text-[#d30303] bg-[#f1c1c1] font-semibold">
+            No results found for "{search}"
+          </h2>
+        </div>
+      </div>
+      )
+      }
 
   {/* Recent searches HISTORY  */}
   {recentSearches?.length >0 && (

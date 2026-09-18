@@ -71,6 +71,7 @@ export default function ConfirmationModal({
               className="
                 relative
                 w-full
+                z-[999999999999999999999999999999999999999999999999999999999999999999999999]
                 max-w-[430px]
                 overflow-hidden
                 rounded-[28px]

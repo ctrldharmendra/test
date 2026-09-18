@@ -117,7 +117,7 @@ useEffect(() => {
         fixed
         inset-x-0
         bottom-0
-        z-[99999]
+        z-[99]
         flex
         justify-center
       "

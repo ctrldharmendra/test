@@ -326,7 +326,9 @@ dispatch(setCurrentPosts(data?.posts))
                                   {currentUser?.id && onlineIds.includes(currentUser?.id) ? (
                        <span className="text-green-500 text-[17px] absolute top-[19px] z-[99999] min-w-[10px] min-h-[10px] bg-[#31ff00] right-0 rounded-full"></span>
               ) : null}
-                <img
+                <Image
+                width={64}
+                height={64}
                   src={currentUser?.image}
                   alt={currentUser?.fullName}
                   className="
@@ -337,6 +339,7 @@ dispatch(setCurrentPosts(data?.posts))
                     sm:h-28
                     sm:w-28
                   "
+                   preload
                 />
               </div>
             </div>

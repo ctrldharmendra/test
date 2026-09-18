@@ -17,6 +17,7 @@ import {
   FaArrowRight,
   FaSpinner,
 } from "react-icons/fa6";
+import GoogleSignInButton from "@/components/GoogleSignInButton/GoogleSignInButton";
 
 
 
@@ -86,7 +87,7 @@ const dispatch = useDispatch();
   };
 
   return (
-    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#080808] px-5 py-8 text-white">
+    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#080808] px-1 py-8 text-white">
       {/* Background glow */}
       <div className="pointer-events-none absolute -left-32 top-10 h-80 w-80 rounded-full bg-rose-600/15 blur-[130px]" />
       <div className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-fuchsia-600/10 blur-[130px]" />
@@ -123,7 +124,7 @@ const dispatch = useDispatch();
         </div>
 
         {/* Login card */}
-        <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-5 shadow-2xl backdrop-blur-2xl sm:p-7">
+        <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-3 shadow-2xl backdrop-blur-2xl sm:p-7">
           <form onSubmit={handleLogin} className="space-y-5">
             {/* Email */}
             <div>
@@ -166,6 +167,17 @@ const dispatch = useDispatch();
                 </button>
               </div>
             </div>
+
+                    <div className="flex w-full items-center gap-2 py-2 text-sm text-slate-600">
+            
+                 
+                                <div className="h-px w-full bg-slate-200"></div>
+                                OR
+                                <div className="h-px w-full bg-slate-200"></div>
+                            </div>
+                    <div className="flex w-full items-center gap-2 py-2 text-sm">
+                        <GoogleSignInButton />
+                      </div> 
 
             {/* Submit */}
             <button type="submit" disabled={loading} className="group flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-pink-500 to-red-500 px-5 py-4 text-sm font-bold text-white shadow-[0_12px_35px_rgba(244,63,94,0.2)] transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70">
