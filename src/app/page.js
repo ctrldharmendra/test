@@ -22,6 +22,7 @@ const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
 
 
 // console.log(loggedInUserId)
+console.log(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)
   return (
     <main className="relative min-h-dvh overflow-hidden bg-[#080808] text-white">
       {/* Ambient background */}
