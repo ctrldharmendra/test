@@ -20,6 +20,12 @@ const unreadCountSlice = createSlice({
     setUnreadCount: (state, action) => {
       state.count = action.payload;
     },
+    // Local +1 for an incoming message. The server's authoritative total
+    // (sent back on `message:read`) will overwrite this, so any brief
+    // over/under-count is self-correcting.
+    incrementUnread: (state) => {
+      state.count = Number(state.count || 0) + 1;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchUnreadCount.fulfilled, (state, action) => {
@@ -28,5 +34,5 @@ const unreadCountSlice = createSlice({
   },
 });
 
-export const { setUnreadCount } = unreadCountSlice.actions;
+export const { setUnreadCount, incrementUnread } = unreadCountSlice.actions;
 export default unreadCountSlice.reducer;

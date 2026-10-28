@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit'
 const initialState = {
   selectedAge: "",
   selectedGender: "",
-  selectedDistance:25,
+  selectedDistance:50,
   isViewingPost: false,
   currentPost: null,
   selectedImageToPost: null,

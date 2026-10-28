@@ -477,7 +477,15 @@ dispatch(setCurrentPosts(data?.posts))
                 Birthday · {currentUser?.age} years
               </p>
             </div>
+          <div>
+              <p className="text-[10px] text-[#c1c1c1]">
+                Address
+              </p>
 
+              <p className="text-sm font-medium">
+                {currentUser?.location}
+              </p>
+            </div>
             {/* Username */}
 
             <div

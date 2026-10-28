@@ -175,7 +175,7 @@ const dispatch = useDispatch();
                                 OR
                                 <div className="h-px w-full bg-slate-200"></div>
                             </div>
-                    <div className="flex w-full items-center gap-2 py-2 text-sm">
+                    <div className="flex w-full gbtn items-center gap-2 py-2 text-sm">
                         <GoogleSignInButton />
                       </div> 
 

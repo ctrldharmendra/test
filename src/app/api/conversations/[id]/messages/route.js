@@ -43,6 +43,12 @@ export async function GET(request, { params }) {
       );
     }
 
+        const [otherRows] = await db.execute(
+      `SELECT last_read_message_id FROM conversation_participants WHERE conversation_id = ? AND user_id != ? LIMIT 1`,
+      [conversationId, loggedInUserId]
+    );
+    const otherLastRead = Number(otherRows[0]?.last_read_message_id || 0);
+
     // ==========================================
     // PAGINATION (cursor = created_at of oldest message client has)
     // ==========================================
@@ -61,6 +67,7 @@ export async function GET(request, { params }) {
         m.is_edited,
         m.is_deleted,
         m.created_at,
+        m.delivered_at,
         m.reply_to_message_id,
 
         rm.id AS reply_id,
@@ -138,6 +145,14 @@ export async function GET(request, { params }) {
       isEdited: Boolean(m.is_edited),
       isDeleted: Boolean(m.is_deleted),
       createdAt: m.created_at,
+            status:
+        Number(m.sender_id) === Number(loggedInUserId)
+          ? Number(m.id) <= otherLastRead
+            ? "read"
+            : m.delivered_at
+            ? "delivered"
+            : "sent"
+          : null,
 
       replyTo: m.reply_to_message_id
         ? {

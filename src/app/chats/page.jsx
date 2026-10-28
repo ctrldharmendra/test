@@ -1,172 +1,6 @@
-
-// "use client";
-
-// import { useEffect, useState, useCallback } from "react";
-// import { useSearchParams } from "next/navigation";
-// import { FaMessage, FaPenToSquare } from "react-icons/fa6";
-// import axiosInstance from "@/lib/axiosInstance";
-// import { getSocket } from "@/lib/socket";
-// import ChatList from "./components/ChatList";
-// import ChatWindow from "./components/ChatWindow";
-
-// export default function MessagePage() {
-//   const searchParams = useSearchParams();
-//   const conversationIdFromUrl = searchParams.get("conversationId");
-
-//   const [conversations, setConversations] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [selectedConvo, setSelectedConvo] = useState(null);
-
-//   const fetchConversations = useCallback(async () => {
-//     try {
-//       const res = await axiosInstance.get("/api/conversations");
-//       const list = res.data.conversations || [];
-//       setConversations(list);
-
-//       if (conversationIdFromUrl && !selectedConvo) {
-//         const match = list.find(
-//           (c) => String(c.conversationId) === String(conversationIdFromUrl)
-//         );
-
-//         if (match) {
-//           setSelectedConvo({
-//             conversationId: match.conversationId,
-//             otherUser: match.otherUser,
-//           });
-//         } else {
-//           const otherUserId = searchParams.get("otherUserId");
-//           if (otherUserId) {
-//             setSelectedConvo({
-//               conversationId: conversationIdFromUrl,
-//               otherUser: {
-//                 id: Number(otherUserId),
-//                 fullName: searchParams.get("otherUserName") || "User",
-//                 username: searchParams.get("otherUserUsername") || "",
-//                 image: searchParams.get("otherUserImage") || null,
-//               },
-//             });
-//           }
-//         }
-//       }
-//     } catch (error) {
-//       console.error("Failed to load conversations:", error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   }, [conversationIdFromUrl, searchParams, selectedConvo]);
-
-//   useEffect(() => {
-//     fetchConversations();
-//   }, [fetchConversations]);
-
-//   // Handle Realtime Socket Message & Read updates
-//   useEffect(() => {
-//     const socket = getSocket();
-
-//     const handleNewGlobalMessage = (message) => {
-//       setConversations((prev) => {
-//         const existingIndex = prev.findIndex(
-//           (c) => String(c.conversationId) === String(message.conversationId)
-//         );
-
-//         const isOpen = selectedConvo && String(selectedConvo.conversationId) === String(message.conversationId);
-
-//         if (existingIndex !== -1) {
-//           const updatedList = [...prev];
-//           const item = updatedList[existingIndex];
-          
-//           updatedList[existingIndex] = {
-//             ...item,
-//             lastMessageAt: message.createdAt || new Date().toISOString(),
-//             unreadCount: isOpen ? 0 : item.unreadCount + 1,
-//             lastMessage: {
-//               id: message.id,
-//               senderId: message.senderId,
-//               type: message.type || "text",
-//               content: message.content,
-//               isDeleted: false,
-//               createdAt: message.createdAt,
-//             },
-//           };
-//           // Move updated chat to top
-//           return updatedList.sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
-//         } else {
-//           fetchConversations();
-//           return prev;
-//         }
-//       });
-//     };
-
-//     socket.on("message:new", handleNewGlobalMessage);
-//     return () => socket.off("message:new", handleNewGlobalMessage);
-//   }, [selectedConvo, fetchConversations]);
-
-//   // Clear unread count locally when conversation is opened
-//   const handleSelectConversation = (convo) => {
-//     setSelectedConvo(convo);
-//     setConversations((prev) =>
-//       prev.map((c) =>
-//         c.conversationId === convo.conversationId ? { ...c, unreadCount: 0 } : c
-//       )
-//     );
-//   };
-
-//   return (
-//     <main className="min-h-dvh bg-[#080808] text-white">
-//       <div className="mx-auto min-h-dvh w-full max-w-[600px] flex flex-col">
-//         {!selectedConvo ? (
-//           <>
-//             <header className="flex items-center justify-between px-4 pb-3 pt-[calc(env(safe-area-inset-top)+16px)]">
-//               <div className="flex items-center gap-3">
-//                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-500/10 text-red-500">
-//                   <FaMessage className="text-base" />
-//                 </div>
-//                 <div>
-//                   <h1 className="text-xl font-bold tracking-tight">Messages</h1>
-//                   <p className="text-[11px] text-white/30">Your conversations</p>
-//                 </div>
-//               </div>
-
-//               <button
-//                 type="button"
-//                 className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] text-white/60 transition active:scale-90"
-//               >
-//                 <FaPenToSquare className="text-xs" />
-//               </button>
-//             </header>
-
-//             {loading ? (
-//               <div className="px-4 py-12 text-center text-sm text-white/30">
-//                 Loading conversations...
-//               </div>
-//             ) : (
-//               <ChatList
-//                 conversations={conversations}
-//                 onSelectConversation={handleSelectConversation}
-//               />
-//             )}
-//           </>
-//         ) : (
-//           <ChatWindow
-//             conversationId={selectedConvo.conversationId}
-//             otherUser={selectedConvo.otherUser}
-//             onBack={() => {
-//               setSelectedConvo(null);
-//               fetchConversations();
-//             }}
-//           />
-//         )}
-//       </div>
-//     </main>
-//   );
-// }
-
-
-
-// File: src/app/(withBottomNav)/chats/page.jsx
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FaMessage, FaPenToSquare } from "react-icons/fa6";
 import axiosInstance from "@/lib/axiosInstance";
@@ -174,19 +8,27 @@ import { getSocket } from "@/lib/socket";
 import ChatList from "./components/ChatList";
 import ChatWindow from "./components/ChatWindow";
 import { useSelector } from "react-redux";
-// import ChatWindow from "@/components/chatWindow/ChatWindow";
 
 export default function MessagePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const conversationIdFromUrl = searchParams.get("conversationId");
 
-const unreadCount = useSelector((state) => state?.unreadCount?.count);
+const STATUS_RANK = { sent: 1, delivered: 2, read: 3 };
+const upgradeStatus = (cur, next) =>
+  (STATUS_RANK[next] || 0) > (STATUS_RANK[cur] || 0) ? next : cur;
 
-  
+
+
+  const unreadCount = useSelector((state) => state?.unreadCount?.count);
+  const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
+
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedConvo, setSelectedConvo] = useState(null);
+
+  // socket handlers me latest selectedConvo chahiye, isliye ref me rakha
+  const selectedConvoRef = useRef(null);
 
   const fetchConversations = useCallback(async () => {
     try {
@@ -229,9 +71,122 @@ const unreadCount = useSelector((state) => state?.unreadCount?.count);
     }
   }, [conversationIdFromUrl, searchParams]);
 
+  console.log(conversations, "conversations");
+
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
+
+  // selectedConvo ka latest value ref me sync rakho
+  useEffect(() => {
+    selectedConvoRef.current = selectedConvo;
+  }, [selectedConvo]);
+
+  // ==========================================
+  // REALTIME — reaction + naya message se chat list update
+  // ==========================================
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleReactionUpdated = (p) => {
+      setConversations((prev) => {
+        const target = prev.find((c) => c.conversationId === p.conversationId);
+        if (!target) return prev;
+
+        if (p.action === "added") {
+          const updated = {
+            ...target,
+            lastMessageAt: p.createdAt,
+            lastReaction: {
+              messageId: p.messageId,
+              userId: p.reactorId,
+              userName: p.reactorName,
+              emoji: p.emoji,
+              messageOwnerId: p.messageOwnerId,
+              messageSnippet: p.messageSnippet,
+              createdAt: p.createdAt,
+            },
+          };
+          return [updated, ...prev.filter((c) => c.conversationId !== p.conversationId)];
+        }
+
+        return prev.map((c) =>
+          c.conversationId === p.conversationId &&
+          c.lastReaction?.messageId === p.messageId &&
+          c.lastReaction?.userId === p.reactorId
+            ? { ...c, lastReaction: null }
+            : c
+        );
+      });
+    };
+
+    const handleNewMessage = (m) => {
+      setConversations((prev) => {
+        const target = prev.find((c) => c.conversationId === m.conversationId);
+        if (!target) return prev;
+
+        const isOpen =
+          String(selectedConvoRef.current?.conversationId) === String(m.conversationId);
+        const fromOther = Number(m.senderId) !== Number(loggedInUserId);
+
+        const updated = {
+          ...target,
+          lastReaction: null,
+          lastMessageAt: m.createdAt,
+          lastMessage: {
+            id: m.id,
+            senderId: m.senderId,
+            type: m.type,
+            content: m.content,
+            isDeleted: false,
+            createdAt: m.createdAt,
+            status: fromOther ? null : "sent",
+          },
+          unreadCount:
+            fromOther && !isOpen ? Number(target.unreadCount) + 1 : target.unreadCount,
+        };
+
+        return [updated, ...prev.filter((c) => c.conversationId !== m.conversationId)];
+      });
+    };
+
+    const handleDelivered = ({ conversationId, senderId, upToMessageId }) => {
+      setConversations((prev) =>
+        prev.map((c) => {
+          const lm = c.lastMessage;
+          if (Number(c.conversationId) !== Number(conversationId) || !lm) return c;
+          if (Number(lm.senderId) !== Number(senderId)) return c;
+          if (Number(lm.id) > Number(upToMessageId)) return c;
+          return { ...c, lastMessage: { ...lm, status: upgradeStatus(lm.status, "delivered") } };
+        })
+      );
+    };
+
+    const handleSeen = ({ conversationId, readByUserId, lastReadMessageId }) => {
+      setConversations((prev) =>
+        prev.map((c) => {
+          const lm = c.lastMessage;
+          if (Number(c.conversationId) !== Number(conversationId) || !lm) return c;
+          if (Number(lm.senderId) === Number(readByUserId)) return c;
+          if (Number(lm.id) > Number(lastReadMessageId)) return c;
+          return { ...c, lastMessage: { ...lm, status: upgradeStatus(lm.status, "read") } };
+        })
+      );
+    };
+
+    socket.on("conversation:reaction-updated", handleReactionUpdated);
+    socket.on("message:new", handleNewMessage);
+    socket.on("message:delivered", handleDelivered);
+    socket.on("message:seen", handleSeen);
+
+    return () => {
+      socket.off("conversation:reaction-updated", handleReactionUpdated);
+      socket.off("message:new", handleNewMessage);
+      socket.off("message:delivered", handleDelivered);
+      socket.off("message:seen", handleSeen);
+    };
+  }, [loggedInUserId]);
 
   // Handle Back Button correctly by cleaning URL
   const handleBack = () => {
@@ -241,11 +196,9 @@ const unreadCount = useSelector((state) => state?.unreadCount?.count);
     fetchConversations();
   };
 
-
   useEffect(() => {
-fetchConversations();
-  }, [unreadCount])
-  
+    fetchConversations();
+  }, [unreadCount]);
 
   return (
     <main className="min-h-dvh bg-[#080808] text-white">

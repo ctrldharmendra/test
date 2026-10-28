@@ -10,17 +10,8 @@ export const fetchMessages = createAsyncThunk(
         `/api/conversations/${conversationId}/messages`,
         { params }
       );
-      return { conversationId, ...res?.data };
+      return { conversationId, ...res.data };
     } catch (err) {
-      if (err.response?.status === 403) {
-        return {
-          conversationId,
-          messages: [],
-          nextCursor: null,
-          hasMore: false,
-        };
-      }
-      console.error("Get conversations error:", err);
       return rejectWithValue(err.response?.data?.message || "Failed to load messages");
     }
   }
@@ -31,8 +22,19 @@ const emptyConvoState = () => ({
   nextCursor: null,
   hasMore: true,
   status: "idle",
-  typingUserId: null, // NAYA — doosra banda type kar raha hai kya
+  typingUserId: null,
 });
+
+// status kabhi neeche nahi jaana chahiye (events duplicate/ulte order me aa sakte hai)
+const STATUS_RANK = { sending: 0, sent: 1, delivered: 2, read: 3 };
+
+const upgradeStatus = (msg, next) => {
+  if ((STATUS_RANK[next] ?? -1) > (STATUS_RANK[msg.status] ?? -1)) {
+    msg.status = next;
+  }
+};
+
+const hasRealId = (m) => Number.isFinite(Number(m.id)); // optimistic ka id "temp-..." hota hai
 
 const messagesSlice = createSlice({
   name: "messages",
@@ -43,7 +45,10 @@ const messagesSlice = createSlice({
       if (!state.byConversation[conversationId]) {
         state.byConversation[conversationId] = emptyConvoState();
       }
-      state.byConversation[conversationId].messages.push(message);
+      state.byConversation[conversationId].messages.push({
+        status: "sending",
+        ...message,
+      });
     },
 
     receiveMessage: (state, action) => {
@@ -58,11 +63,47 @@ const messagesSlice = createSlice({
       );
 
       if (optimisticIndex !== -1) {
-        convo.messages[optimisticIndex] = action.payload;
+        convo.messages[optimisticIndex] = action.payload; // status: "sent"
       } else {
         const alreadyExists = convo.messages.some((m) => m.id === action.payload.id);
         if (!alreadyExists) {
           convo.messages.push(action.payload);
+        }
+      }
+    },
+
+    markMessageFailed: (state, action) => {
+      const { conversationId, tempId } = action.payload;
+      const convo = state.byConversation[conversationId];
+      if (!convo) return;
+      const msg = convo.messages.find((m) => m.isOptimistic && m.tempId === tempId);
+      if (msg) msg.status = "failed";
+    },
+
+    // receiver ke app ne message receive kiya
+    applyDelivered: (state, action) => {
+      const { conversationId, senderId, upToMessageId } = action.payload;
+      const convo = state.byConversation[conversationId];
+      if (!convo) return;
+      const upTo = Number(upToMessageId);
+
+      for (const m of convo.messages) {
+        if (Number(m.senderId) === Number(senderId) && hasRealId(m) && Number(m.id) <= upTo) {
+          upgradeStatus(m, "delivered");
+        }
+      }
+    },
+
+    // receiver ne chat dekhi (reader ke alawa sab messages "read" ho jaate hai)
+    applyRead: (state, action) => {
+      const { conversationId, readerId, upToMessageId } = action.payload;
+      const convo = state.byConversation[conversationId];
+      if (!convo) return;
+      const upTo = Number(upToMessageId);
+
+      for (const m of convo.messages) {
+        if (Number(m.senderId) !== Number(readerId) && hasRealId(m) && Number(m.id) <= upTo) {
+          upgradeStatus(m, "read");
         }
       }
     },
@@ -98,8 +139,6 @@ const messagesSlice = createSlice({
       if (!msg) return;
 
       if (!msg.reactions) msg.reactions = [];
-
-      // purana reaction is user ka hata do
       msg.reactions = msg.reactions.filter((r) => r.userId !== userId);
 
       if (reactAction === "added" && emoji) {
@@ -152,6 +191,9 @@ const messagesSlice = createSlice({
 export const {
   addOptimisticMessage,
   receiveMessage,
+  markMessageFailed,
+  applyDelivered,
+  applyRead,
   applyMessageEdited,
   applyMessageDeleted,
   applyReaction,

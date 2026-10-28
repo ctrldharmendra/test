@@ -462,7 +462,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   FaArrowLeft,
@@ -484,13 +484,18 @@ import {
   applyMessageDeleted,
   applyReaction,
   setTypingStatus,
+    applyDelivered,
+  applyRead,
+  markMessageFailed,
 } from "@/redux/slices/message/messagesSlice";
 import { setUnreadCount } from "@/redux/slices/message/unreadCountSlice";
+import MessageStatus from "./MessageStatus";
 
 const reactionsList = ["❤️", "😂", "😍", "😮", "😢", "👍"];
 let typingTimeout = null;
 
 export default function ChatWindow({ conversationId, otherUser, onBack, isNew = false }) {
+    const lastReadSentRef = useRef(null);
   const dispatch = useDispatch();
   const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
   const onlineIds = useSelector((state) => state.onlineUsers?.ids || []);
@@ -556,12 +561,12 @@ const inputRef = useRef(null); // NAYA
       dispatch(receiveMessage(message));
 
       // Emit Read acknowledge immediately when screen is open
-      if (message.senderId !== loggedInUserId) {
-        socket.emit("message:read", {
-          conversationId,
-          lastMessageId: message.id,
-        });
-      }
+      // if (message.senderId !== loggedInUserId) {
+      //   socket.emit("message:read", {
+      //     conversationId,
+      //     lastMessageId: message.id,
+      //   });
+      // }
     };
 
     const handleEdited = ({ messageId, newContent }) => {
@@ -582,11 +587,29 @@ const inputRef = useRef(null); // NAYA
       dispatch(setTypingStatus({ conversationId, userId, isTyping }));
     };
 
+        const handleDelivered = ({ conversationId: cId, senderId, upToMessageId }) => {
+      if (String(cId) !== String(conversationId)) return;
+      dispatch(applyDelivered({ conversationId, senderId, upToMessageId }));
+    };
+
+    const handleSeen = ({ conversationId: cId, readByUserId, lastReadMessageId }) => {
+      if (String(cId) !== String(conversationId)) return;
+      dispatch(applyRead({ conversationId, readerId: readByUserId, upToMessageId: lastReadMessageId }));
+    };
+
+    const handleSendError = ({ tempId }) => {
+      if (tempId) dispatch(markMessageFailed({ conversationId, tempId }));
+    };
+
     socket.on("message:new", handleNewMessage);
     socket.on("message:edited", handleEdited);
     socket.on("message:deleted", handleDeleted);
     socket.on("message:reacted", handleReacted);
     socket.on("typing:update", handleTyping);
+
+    socket.on("message:delivered", handleDelivered);
+    socket.on("message:seen", handleSeen);
+    socket.on("message:error", handleSendError);
 
     return () => {
       socket.off("message:new", handleNewMessage);
@@ -594,6 +617,9 @@ const inputRef = useRef(null); // NAYA
       socket.off("message:deleted", handleDeleted);
       socket.off("message:reacted", handleReacted);
       socket.off("typing:update", handleTyping);
+          socket.off("message:delivered", handleDelivered);
+    socket.off("message:seen", handleSeen);
+    socket.off("message:error", handleSendError);
     };
   }, [conversationId, loggedInUserId, dispatch]);
 
@@ -646,6 +672,7 @@ const inputRef = useRef(null); // NAYA
       addOptimisticMessage({
         conversationId,
         message: {
+           status: "sending",
           tempId,
           isOptimistic: true,
           id: tempId,
@@ -774,6 +801,70 @@ const inputRef = useRef(null); // NAYA
       minute: "2-digit",
     });
   };
+useEffect(() => {
+  window.activeConversationId = conversationId;
+  return () => {
+    window.activeConversationId = null;
+  };
+}, [conversationId]);
+
+
+
+
+// mark as read 
+const markAsRead = useCallback(() => {
+    if (typeof document === "undefined" || document.visibilityState !== "visible") return;
+
+    // doosre ka sabse latest confirmed message dhundo
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      const isIncoming = Number(m.senderId) !== Number(loggedInUserId);
+
+      if (isIncoming && !m.isOptimistic && Number.isFinite(Number(m.id))) {
+        if (lastReadSentRef.current === m.id) return; // already bhej chuke
+        lastReadSentRef.current = m.id;
+        getSocket().emit("message:read", { conversationId, lastMessageId: m.id });
+        return;
+      }
+    }
+  }, [messages, loggedInUserId, conversationId]);
+
+  // naya message aaya ya chat khuli
+  useEffect(() => {
+    markAsRead();
+  }, [markAsRead]);
+
+  // tab dobara visible hua, ya socket reconnect hua
+  useEffect(() => {
+    const socket = getSocket();
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") markAsRead();
+    };
+    const onReconnect = () => {
+      lastReadSentRef.current = null;
+      markAsRead();
+    };
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    socket.on("connect", onReconnect);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+      socket.off("connect", onReconnect);
+    };
+  }, [markAsRead]);
+
+
+
+
+
+
+
+
+
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[#080808] select-none">
@@ -963,15 +1054,21 @@ const inputRef = useRef(null); // NAYA
                     </p>
                   </div>
 
-                  <div className={`mt-0.5 flex items-center gap-1.5 px-1 ${isMe ? "justify-end" : "justify-start"}`}>
+                   <div className={`mt-0.5 flex items-center gap-1.5 px-1 ${isMe ? "justify-end" : "justify-start"}`}>
                     <span className="text-[9px] text-white/40">
-                      {message.isOptimistic ? "Sending..." : formatTime(message.createdAt)}
+                      {formatTime(message.createdAt)}
                       {message.isEdited && !message.isDeleted && " · edited"}
                     </span>
 
-                    {message.reactions?.length > 0 && (
+                    {isMe && !message.isDeleted && (
+                      <MessageStatus
+                        status={message.isOptimistic ? message.status || "sending" : message.status || "sent"}
+                      />
+                    )}
+
+                    {message?.reactions?.length > 0 && (
                       <span className="rounded-full border border-white/10 bg-[#181818] px-1.5 py-0.5 text-[10px]">
-                        {message.reactions.map((r) => r.emoji).join("")}
+                        {message?.reactions.map((r) => r.emoji).join("")}
                       </span>
                     )}
                   </div>

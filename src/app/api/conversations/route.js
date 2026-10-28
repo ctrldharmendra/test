@@ -38,6 +38,19 @@ export async function GET(request) {
           last_msg.is_deleted AS last_message_is_deleted,
           last_msg.created_at AS last_message_created_at,
 
+                    last_msg.delivered_at AS last_message_delivered_at,
+          other_cp.last_read_message_id AS other_last_read_message_id,
+
+          c.last_reaction_message_id,
+          c.last_reaction_user_id,
+          c.last_reaction_emoji,
+          c.last_reaction_at,
+          react_msg.sender_id AS react_msg_sender_id,
+          react_msg.message_type AS react_msg_type,
+          react_msg.content AS react_msg_content,
+          react_msg.is_deleted AS react_msg_is_deleted,
+          react_user.fullname AS react_user_fullname,
+
           my_cp.last_read_message_id,
 
           (
@@ -67,6 +80,12 @@ export async function GET(request) {
             LIMIT 1
           )
 
+        LEFT JOIN messages react_msg
+          ON react_msg.id = c.last_reaction_message_id
+
+        LEFT JOIN users react_user
+          ON react_user.id = c.last_reaction_user_id
+
         ORDER BY c.last_message_at DESC
       `,
       [loggedInUserId, loggedInUserId, loggedInUserId]
@@ -84,6 +103,22 @@ export async function GET(request) {
         image: c.other_dp,
       },
 
+      lastReaction: c.last_reaction_message_id
+        ? {
+            messageId: c.last_reaction_message_id,
+            userId: c.last_reaction_user_id,
+            userName: c.react_user_fullname,
+            emoji: c.last_reaction_emoji,
+            messageOwnerId: c.react_msg_sender_id,
+            messageSnippet: c.react_msg_is_deleted
+              ? null
+              : c.react_msg_type === "image"
+              ? "📷 Photo"
+              : (c.react_msg_content || "").slice(0, 40),
+            createdAt: c.last_reaction_at,
+          }
+        : null,
+
       lastMessage: c.last_message_id
         ? {
             id: c.last_message_id,
@@ -92,6 +127,14 @@ export async function GET(request) {
             content: c.last_message_is_deleted ? null : c.last_message_content,
             isDeleted: Boolean(c.last_message_is_deleted),
             createdAt: c.last_message_created_at,
+                        status:
+              Number(c.last_message_sender_id) === Number(loggedInUserId)
+                ? Number(c.last_message_id) <= Number(c.other_last_read_message_id || 0)
+                  ? "read"
+                  : c.last_message_delivered_at
+                  ? "delivered"
+                  : "sent"
+                : null,
           }
         : null,
     }));
@@ -109,8 +152,8 @@ export async function GET(request) {
   }
 }
 
-
 // POST CONVERSATIONS 
+
 export async function POST(request) {
   const auth = await authenticateAccessToken(request);
   if (auth.error) {
@@ -146,9 +189,7 @@ export async function POST(request) {
     connection = await db.getConnection();
     await connection.beginTransaction();
 
-    // CHECK IF CONVERSATION ALREADY EXISTS
-    // (dono users ke beech, 1-to-1 assumption)
-
+    // kya in dono users ka conversation already exist karta hai
     const [existingRows] = await connection.execute(
       `
         SELECT cp1.conversation_id
@@ -173,8 +214,7 @@ export async function POST(request) {
       );
     }
 
-    // CREATE NEW CONVERSATION
-
+    // naya conversation banao
     const [convResult] = await connection.execute(
       `INSERT INTO conversations (created_at) VALUES (NOW())`
     );

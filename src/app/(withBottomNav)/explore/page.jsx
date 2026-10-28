@@ -181,7 +181,7 @@ if(loading){
     <ExploreLoading></ExploreLoading>
   )
 }
-
+// console.log(currentUser)
   return (
     <main className="min-h-dvh bg-neutral-950 text-white">
            <div className="mx-auto flex w-full max-w-[600px] flex-col overflow-hidden bg-neutral-950">

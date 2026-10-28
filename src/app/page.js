@@ -15,6 +15,7 @@ import {
 } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import GoogleSignInButton from "@/components/GoogleSignInButton/GoogleSignInButton";
+import LoginPage from "./login/page";
 
 export default function Home() {
 const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
@@ -48,12 +49,12 @@ const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
           </Link>
     )}
         </header>
-
-        {/* Hero */}
-        <section className="flex flex-1 flex-col items-center justify-center pb-8 pt-8 text-center sm:pt-12 lg:grid lg:grid-cols-2 lg:gap-14 lg:text-left">
+ 
+        {/* Hero */}  
+        <section className="flex flex-1 flex-col items-start justify-center pb-8 text-center sm:pt-12 lg:grid lg:grid-cols-2 lg:gap-14 lg:text-left">
 
           {/* Hero copy */}
-          <motion.div initial={{ opacity: 0, y: 25 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="relative z-10 flex flex-col items-center lg:items-start">
+          <motion.div initial={{ opacity: 0, y: 25 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="relative lg:block hidden z-10 flex flex-col items-center lg:items-start">
 
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15, duration: 0.5 }} className="mb-6 inline-flex items-center gap-2 rounded-full border border-rose-500/20 bg-rose-500/[0.08] px-3.5 py-2 text-[11px] font-medium text-rose-300">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-400" />
@@ -74,34 +75,14 @@ const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
             </p>
 
             {/* CTA buttons */}
-            <div className="mt-8 flex w-full max-w-sm flex-col gap-3 sm:flex-row">
+            <div className="mt-8">
+
+
+
               <Link href={loggedInUserId ? "/explore" : "/signup"} className="group flex flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-pink-500 to-red-500 px-5 py-4 text-sm font-bold text-white shadow-[0_12px_35px_rgba(244,63,94,0.2)] transition hover:brightness-110 active:scale-[0.97]">
                 {loggedInUserId ? "Go to Home page" : "Create Account"}
                 <FaArrowRight className="text-xs transition-transform group-hover:translate-x-1" />
               </Link>
-
-      { !loggedInUserId && (
-        <>
-        <div className="flex w-full items-center gap-2 py-2 text-sm text-slate-200">
-
-     
-                    <div className="h-px w-full bg-slate-200"></div>
-                    OR
-                    <div className="h-px w-full bg-slate-200"></div>
-                </div>
-        <div className="flex w-full items-center gap-2 py-2 text-sm">
-            <GoogleSignInButton />
-          </div>        
-        </>
-
-      )}
-
-      { !loggedInUserId && (
-        <Link href="/login" className="flex flex-1 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-sm font-semibold text-white/80 transition hover:bg-white/[0.08] active:scale-[0.97]">
-          Login
-        </Link>
-      )}
-
             </div>
 
             {/* Small trust row */}
@@ -122,8 +103,20 @@ const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
           </motion.div>
 
           {/* Animated social preview */}
-          <motion.div initial={{ opacity: 0, y: 35 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.8 }} className="relative mt-14 flex w-full items-center justify-center lg:mt-0">
+          <motion.div initial={{ opacity: 0, y: 35 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.8 }} className="relative w-full items-center justify-center lg:mt-0">
 
+
+                  { !loggedInUserId && (
+<LoginPage></LoginPage>
+      )}
+          </motion.div>
+        </section>
+
+
+
+{/* floating  */}
+<div className="relative">
+  
             {/* Decorative rings */}
             <div className="absolute h-[270px] w-[270px] rounded-full border border-white/[0.045] sm:h-[360px] sm:w-[360px]" />
             <div className="absolute h-[220px] w-[220px] rounded-full border border-rose-500/[0.08] sm:h-[300px] sm:w-[300px]" />
@@ -139,7 +132,10 @@ const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 Online
               </div>
+              
+
             </motion.div>
+            
 
             {/* Main app card */}
             <motion.div animate={{ y: [0, 8, 0], rotate: [3, 1, 3] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="relative z-10 w-[220px] overflow-hidden rounded-[32px] border border-white/15 bg-[#151111] p-2 shadow-[0_25px_80px_rgba(244,63,94,0.15)] sm:w-[270px] sm:rounded-[38px] sm:p-2.5">
@@ -224,8 +220,8 @@ const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
             <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity }} className="absolute bottom-0 left-10 text-xl text-amber-300/70">
               <FaStar />
             </motion.div>
-          </motion.div>
-        </section>
+
+  </div>
 
         {/* Minimal bottom hint */}
         <footer className="pb-5 text-center text-[10px] text-white/20 sm:pb-7">
