@@ -600,8 +600,12 @@ export default function SettingsPage() {
               description="Permanently delete your account and data."
               danger
               type="navigation"
-              onClick={() =>
-                console.log("Delete account")
+                             onClick={() =>
+                requestToggle(
+                  "under dev",
+                  "This delete acc feature is under dev.",
+                  "under dev"
+                )
               }
             />
           </div>
