@@ -166,16 +166,7 @@ const dispatch = useDispatch();
               </div>
             </div>
 
-                    <div className="flex w-full items-center gap-2 py-2 text-sm text-slate-600">
-            
-                 
-                                <div className="h-px w-full bg-slate-200"></div>
-                                OR
-                                <div className="h-px w-full bg-slate-200"></div>
-                            </div>
-                    <div className="flex w-full gbtn items-center gap-2 py-2 text-sm">
-                        <GoogleSignInButton />
-                      </div> 
+      
 
             {/* Submit */}
             <button type="submit" disabled={loading} className="group flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-pink-500 to-red-500 px-5 py-4 text-sm font-bold text-white shadow-[0_12px_35px_rgba(244,63,94,0.2)] transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70">
@@ -192,7 +183,16 @@ const dispatch = useDispatch();
               )}
             </button>
           </form>
-
+              <div className="flex w-full items-center gap-2 py-2 text-sm text-slate-600">
+            
+                 
+                                <div className="h-px w-full bg-slate-200"></div>
+                                OR
+                                <div className="h-px w-full bg-slate-200"></div>
+                            </div>
+                    <div className="flex w-full gbtn items-center gap-2 py-2 text-sm">
+                        <GoogleSignInButton />
+                      </div> 
           {/* Register link */}
           <div className="mt-6 text-center text-xs text-white/35">
             Don't have an account?{" "}

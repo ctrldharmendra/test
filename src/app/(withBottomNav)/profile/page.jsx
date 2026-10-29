@@ -483,7 +483,11 @@ if(!loggedInUserId) return (
                 Birthday · {currentUser?.age} years
               </p>
             </div>
-          <div>
+          <div className="     rounded-xl
+                border
+                border-white/[0.06]
+                bg-white/[0.035]
+                p-3">
               <p className="text-[10px] text-[#c1c1c1]">
                 Address
               </p>

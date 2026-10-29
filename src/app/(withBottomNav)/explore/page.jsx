@@ -11,6 +11,7 @@ import {
   FaArrowUpRightFromSquare,
   FaXmark,
   FaRegHeart,
+  FaQuestion,
 } from "react-icons/fa6";
 import ProfileFilters from "./component/filter/ProfileFilter";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,6 +19,7 @@ import Link from "next/link";
 import { CgSpinner } from "react-icons/cg";
 import Image from "next/image";
 import ExploreLoading from "./component/ExploreLoading";
+import HelpPopover from "@/components/popover/Popover";
 
 export default function HomePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -267,7 +269,16 @@ if(loading){
 
     <div className="flex items-center gap-1.5 rounded-full bg-black/25 px-3 py-1.5 text-xs backdrop-blur-md">
       <FaLocationDot className="text-[11px]" />
-      {currentUser?.distance} km
+      {currentUser?.distance} km  
+  <HelpPopover title="The distance may not be 100% accurate." bg="bg-white" textColor="text-red-500">
+    <p>
+   The distance you see here is the distance between you and that particlar user.
+    </p>
+
+    <p className="mt-2 text-red-500">
+      This distance may not be so accurate becaue it is maped from point A to point B.  
+    </p>
+  </HelpPopover>
     </div>
   </div>
 
@@ -294,7 +305,16 @@ if(loading){
 
       <div className="mt-3 flex items-center gap-2 text-sm text-white/80">
         <FaLocationDot className="text-xs" />
-        {currentUser?.distance} km away
+        {currentUser?.distance} km away 
+          <HelpPopover title="The distance may not be 100% accurate." bg="bg-[#ededed14]" textColor="text-[white]">
+    <p>
+   The distance you see here is the distance between you and that particlar user.
+    </p>
+
+    <p className="mt-2 text-red-500">
+      This distance may not be so accurate becaue it is maped from point A to point B.  
+    </p>
+  </HelpPopover>
       </div>
     </div>
         {/* Controls */}

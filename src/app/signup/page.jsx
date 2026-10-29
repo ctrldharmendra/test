@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { FaArrowRight, FaLocationCrosshairs, FaMagnifyingGlass } from "react-icons/fa6";
+import { FaArrowRight, FaLocationCrosshairs, FaMagnifyingGlass, FaQuestion } from "react-icons/fa6";
 import ProfileImage from "./components/ProfileImage";
 import Link from "next/link";
 import useDebounce from "@/components/debounceSearch/DebouncedSearch";
@@ -24,12 +24,12 @@ export default function RegisterPage() {
   const searchWrapperRef = useRef(null);
 
   const [formData, setformData] = useState({
-    username: "Mahesh",
-    fullname: "Mahesh",
-    email: "bibika@gmail.com",
+    username: "Mahesh3",
+    fullname: "Mahesh3",
+    email: "bibik3a@gmail.com",
     gender: "Male",
-    dob: "",
-    password: "",
+    dob: "2004-01-29",
+    password: "11111111",
     location_source: "",
     display_name: "",
     latitude: "",
@@ -577,6 +577,8 @@ if (profileImage) {
         Turn on your location
       </h3>
 
+      
+
       <p className="mt-2 text-center text-sm text-slate-500">
         We couldn't detect your location. Please make sure location services
         are turned on for your device and browser, then try again.
@@ -608,13 +610,70 @@ if (profileImage) {
           {/* STEP 2 */}
           {step === 2 && (
             <div className="space-y-5">
+            
+
+
+<div
+  id="location-popover"
+  popover="auto"
+  className="fixed inset-0 z-50 m-0 min-h-screen w-full max-w-none
+    bg-white p-3 text-gray-900"
+>
+  <div className="mainchildOfPopup mx-auto flex min-h-screen w-full max-w-md flex-col justify-center">
+    <div>
+      <div className="flex items-center gap-2 text-sm font-bold">
+        <span>Enable your location</span>
+        <FaLocationCrosshairs />
+      </div>
+
+      <p className="mt-2 text-sm leading-6 text-slate-500">
+        Please turn on your location before proceeding
+        so the app can detect your current location.
+      </p>
+
+      <p className="mt-2 text-xs text-red-500">
+        If "Get my location" doesn't work, search for
+        your village, town, or city manually.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      onClick={(e) => {
+        e.currentTarget
+          .closest("[popover]")
+          ?.hidePopover();
+      }}
+      className="mt-5 w-full rounded-xl bg-indigo-600
+        px-5 py-2.5 text-sm font-semibold text-white
+        transition hover:bg-indigo-700"
+    >
+      Okay
+    </button>
+  </div>
+</div>
+
               <div>
+                
+
+<div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-slate-900">
                   Your location
                 </h2>
+
+<button
+  type="button"
+  popoverTarget="location-popover"
+  className="rounded-xl bg-[#ffc4c4] px-2 py-2 text-sm font-semibold "
+>
+<FaQuestion className=" text-red-500"/>
+
+</button>
+</div>
                 <p className="mt-1 text-sm text-slate-500">
                   Get your current location or search for it manually.
                 </p>
+
               </div>
 
               {/* GPS button */}
@@ -636,7 +695,7 @@ if (profileImage) {
               {/* Search input */}
               <div className="relative" ref={searchWrapperRef}>
   {
-    !formData.longitude && formData.latitude && (
+    !formData.longitude && !formData.latitude && (
                     <div className="relative">
                   <FaMagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
                   <input
