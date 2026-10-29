@@ -48,8 +48,10 @@ export async function POST(request) {
         const connection = await db.getConnection();
 
         try {
-            await connection.beginTransaction();
-
+            // NOTE: login only reads, so no transaction is opened here. Opening
+            // one and returning without commit/rollback left the pooled
+            // connection stuck in an old snapshot, which made later reads
+            // (messages, read receipts) return stale data.
             const [user] = await connection.query(
                 "SELECT * FROM users WHERE email = ? AND password = ?",
                 [email, password]
@@ -95,7 +97,6 @@ export async function POST(request) {
 
             return response;
         } catch (error) {
-            await connection.rollback();
             return NextResponse.json({ message: error.message, success:false }, { status: 401 });
         } finally {
             connection.release();
