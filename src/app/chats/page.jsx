@@ -199,7 +199,11 @@ const upgradeStatus = (cur, next) =>
   useEffect(() => {
     fetchConversations();
   }, [unreadCount]);
-
+if(!loggedInUserId) return (
+  <div className="flex min-h-[100vh] items-center justify-center">
+    <div className="text-gray-500">loggedinUserid is null. </div>
+  </div>
+)
   return (
     <main className="min-h-dvh bg-[#080808] text-white">
       <div className="mx-auto min-h-dvh w-full max-w-[600px] flex flex-col">

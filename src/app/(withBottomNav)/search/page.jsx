@@ -25,6 +25,7 @@ const dispatch = useDispatch();
   const selectedDistance = useSelector((state) => state?.userState?.selectedDistance);
 
   const selectedGender = useSelector((state) => state?.userState?.selectedGender); 
+const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
 
   const searchedUsers = useSelector((state) => state?.userState?.searchedUsers);
 
@@ -208,7 +209,11 @@ const createSearchHistory = async ()=>{
 }
   // CALLING API TO CREATE SEARCH HISTORY END
 
-
+if(!loggedInUserId) return (
+  <div className="flex min-h-[100vh] items-center justify-center">
+    <div className="text-gray-500">loggedinUserid is null. </div>
+  </div>
+)
   return (
     <main className="min-h-dvh bg-[#080808] text-white">
       <div className="mx-auto min-h-dvh w-full max-w-[600px]">

@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 export default function CreatePostPage() {
   const dispatch = useDispatch();
   const router = useRouter();
+const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
 
   const fileInputRef = useRef(null);
 
@@ -207,7 +208,11 @@ if(data?.success === true){
   | Render
   |--------------------------------------------------------------------------
   */
-
+if(!loggedInUserId) return (
+  <div className="flex min-h-[100vh] items-center justify-center">
+    <div className="text-gray-500">loggedinUserid is null. </div>
+  </div>
+)
   return (
     <main className="min-h-dvh bg-[#080808] text-white">
 

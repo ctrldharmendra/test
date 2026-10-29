@@ -29,6 +29,7 @@ export default function TopNav() {
   const dispatch = useDispatch();
   const pathname = usePathname();
 const notificationCount = useSelector((state) => state?.userState?.unSeenNotificationCount);
+const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
 
 const unreadCount = useSelector((state) => state?.unreadCount?.count);
 
@@ -109,7 +110,9 @@ useEffect(() => {
   };
 }, []);
 
-
+if(!loggedInUserId) return (
+null
+)
   return (
     <nav
       className="

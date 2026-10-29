@@ -33,6 +33,7 @@ export default function NotificationsPage() {
 const dispatch = useDispatch();
   const onlineIds = useSelector((state) => state?.onlineUsers?.ids);
 
+const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
 
   const [loading, setloading] = useState(true)
 
@@ -428,7 +429,11 @@ const markASingleNotifiRead = async (notificationId) => {
     (notification) => !notification.is_read
   ).length;
 
-
+if(!loggedInUserId) return (
+  <div className="flex min-h-[100vh] items-center justify-center">
+    <div className="text-gray-500">loggedinUserid is null. </div>
+  </div>
+)
 
   if(loading){
     return (

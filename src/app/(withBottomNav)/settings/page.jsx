@@ -47,6 +47,7 @@ export default function SettingsPage() {
 
     locationAccess: true,
   });
+const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
 
   // CONFIRMATION STATE
 
@@ -201,6 +202,12 @@ export default function SettingsPage() {
         console.error("Error fetching log out:", error);
       }
     };
+
+if(!loggedInUserId) return (
+  <div className="flex min-h-[100vh] items-center justify-center">
+    <div className="text-gray-500">loggedinUserid is null. </div>
+  </div>
+)
 
   return (
     <main

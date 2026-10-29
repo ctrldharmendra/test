@@ -4,10 +4,13 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setLoggedInUserId } from "@/redux/slices/stateSlice";
 
 export default function GoogleSignInButton() {
   const buttonRef = useRef(null);
   const router = useRouter();
+  const dispatch = useDispatch()
 
   useEffect(() => {
     // console.log("CLIENT ID:", process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
@@ -56,10 +59,15 @@ export default function GoogleSignInButton() {
         router.push("/signup/google");
       } else {
         // EXISTING user — seedha login ho gaya
-        toast.success("Logged in successfully");
-        router.push("/explore"); // ya jo bhi aapka home route hai
-      }
-    } catch (error) {
+        if(data?.user?.id){
+          router.push("/explore"); // ya jo bhi aapka home route hai
+          toast.success("Logged in successfully");
+          dispatch(setLoggedInUserId(data?.user?.id))
+
+                }
+        
+              }
+            } catch (error) {
       console.error("Google sign-in error:", error);
       toast.error("Something went wrong");
     }

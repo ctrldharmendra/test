@@ -53,7 +53,7 @@ export async function POST(request) {
       );
 
       const response = NextResponse.json(
-        { success: true, isNewUser: false, message: "Logged in successfully" },
+        { success: true, isNewUser: false, message: "Logged in successfully", user:user },
         { status: 200 }
       );
 

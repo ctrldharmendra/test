@@ -31,6 +31,7 @@ const dispatch = useDispatch();
 
   const selectedGender = useSelector((state) => state?.userState?.selectedGender); 
   const onlineIds = useSelector((state) => state?.onlineUsers?.ids);
+const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
 
 
     const [users, setUsers] = useState([]);
@@ -172,7 +173,11 @@ const handleDragEnd = (event, info) => {
   ]);
 
 
-
+if(!loggedInUserId) return (
+  <div className="flex min-h-[100vh] items-center justify-center">
+    <div className="text-gray-500">loggedinUserid is null. </div>
+  </div>
+)
 
 // console.log(users, "users")
 

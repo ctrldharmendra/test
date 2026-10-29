@@ -61,11 +61,9 @@ const dispatch = useDispatch();
 
 
       if(data?.success == true){
-
         dispatch(setLoggedInUserId(data?.user?.id))
         toast.success("Login successful");
         router.replace("/explore");
-
       }
 
       

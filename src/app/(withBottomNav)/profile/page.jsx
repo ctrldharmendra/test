@@ -36,7 +36,7 @@ const [postCount, setpostCount] = useState();
   const dispatch = useDispatch();
 
 const loggedInUserId = useSelector((state) => state?.userState?.loggedInUserId);
-// console.log(loggedInUserId)
+console.log(loggedInUserId, "loggedInUserId")
   const router = useRouter();
   const onlineIds = useSelector((state) => state?.onlineUsers?.ids);
 
@@ -139,6 +139,12 @@ dispatch(setCurrentPosts(data?.posts))
 );
   }
 
+
+if(!loggedInUserId) return (
+  <div className="flex min-h-[100vh] items-center justify-center">
+    <div className="text-gray-500">loggedinUserid is null. </div>
+  </div>
+)
   return (
     <main className="min-h-dvh bg-[#080808] text-white">
 
