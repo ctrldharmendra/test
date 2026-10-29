@@ -19,7 +19,7 @@ import {
 import { LuMessageSquareMore } from "react-icons/lu";
 import PostImageViewer from "./components/PostImageViewer";
 import Image from "next/image";
-import { useSelector } from "react-redux";
+import { useSelector } from "react-redux"; 
 import { setCurrentPost, setCurrentPosts, setIsViewingPost } from "@/redux/slices/stateSlice";
 import { useDispatch } from "react-redux";
 import DpImageViewer from "./components/DpImageViewer";
