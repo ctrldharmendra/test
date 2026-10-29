@@ -24,7 +24,7 @@ import SettingsSection from "./components/SettingSections";
 import SettingItem from "./components/SettingItems";
 import ConfirmationModal from "./components/ConfirmationModal";
 import toast from "react-hot-toast";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setLoggedInUserId } from "@/redux/slices/stateSlice";
 
 export default function SettingsPage() {
