@@ -248,8 +248,8 @@ if(loading){
 
   {/* Background Image */}
   <Image
-  width={200}
-  height={200}
+  width={300}
+  height={300}
     src={currentUser?.image}
     alt={currentUser?.fullName}
     className="absolute inset-0 rounded rounded-[30px] h-full w-full select-none object-cover"

@@ -234,7 +234,7 @@ observerRef.current = new IntersectionObserver(
                   relative
                   h-10 w-10
                   shrink-0
-  
+  overflow-hidden
                   rounded-full
                 "
               >
@@ -242,13 +242,13 @@ observerRef.current = new IntersectionObserver(
                        <span className="text-green-500 text-[17px] absolute top-0 z-[99999] min-w-[10px] min-h-[10px] bg-[#31ff00] right-0 rounded-full"></span>
               ) : null}
 
-                {post.user?.image ? (
+                {post?.user?.image ? (
                   <Image
                     src={post.user.image}
                     alt={post.user.fullName || "User"}
-                    fill
-                    sizes="40px"
-                    className="object-cover        rounded-full"
+                    width={50}
+                    height={50}
+                    className="object-cover  h-full      rounded-full"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
@@ -309,10 +309,10 @@ observerRef.current = new IntersectionObserver(
             <button
               type="button"
               onDoubleClick={() => onLike?.(post)}
+              // aspect-[4/5]
               className="
                 relative
                 block
-                aspect-[4/5]
                 w-full
                 overflow-hidden
                 bg-[#080808]
@@ -321,10 +321,11 @@ observerRef.current = new IntersectionObserver(
               <Image
                 src={post?.imageUrl}
                 alt={post?.caption || "Post"}
-                fill
-                priority={post?.id === feedPosts?.[0]?.id}
+                lazy={"true"}
+                width={200}
+                height={200}
                 sizes="(max-width: 640px) 100vw, 576px"
-                className="object-cover"
+                className="object-cover mx-auto h-full w-full"
               />
             </button>
           )}
